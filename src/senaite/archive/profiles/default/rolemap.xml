@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<rolemap>
+  <permissions>
+
+    <!-- Transition permissions -->
+    <permission name="senaite.archive: Transition: Archive" acquire="False">
+      <role name="LabManager"/>
+      <role name="Manager"/>
+    </permission>
+
+  </permissions>
+</rolemap>

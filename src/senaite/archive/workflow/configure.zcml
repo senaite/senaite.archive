@@ -1,0 +1,11 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="senaite.archive">
+
+  <!-- After event handler for AnalysisRequest -->
+  <subscriber
+    for="bika.lims.interfaces.IAnalysisRequest
+         Products.DCWorkflow.interfaces.IAfterTransitionEvent"
+    handler=".analysisrequest.AfterTransitionEventHandler" />
+
+</configure>

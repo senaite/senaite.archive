@@ -1,0 +1,20 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="nmrl.lims">
+
+  <!-- Archive Control panel -->
+  <browser:page
+    name="archive-controlpanel"
+    for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+    class=".controlpanel.ArchiveControlPanelView"
+    permission="senaite.core.permissions.ManageBika"
+    layer="senaite.archive.interfaces.ISenaiteArchiveLayer" />
+
+  <!-- Static resource directory -->
+  <browser:resourceDirectory
+    name="senaite.archive.static"
+    directory="static"
+    layer="senaite.archive.interfaces.ISenaiteArchiveLayer" />
+
+</configure>

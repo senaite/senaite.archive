@@ -1,0 +1,233 @@
+# -*- coding: utf-8 -*-
+#
+# This file is part of SENAITE.ARCHIVE.
+#
+# SENAITE.ARCHIVE is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, version 2.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# Copyright 2021 by it's authors.
+# Some rights reserved, see README and LICENSE.
+
+import os
+import transaction
+from datetime import datetime
+from Acquisition import aq_base
+from Products.Archetypes.config import UID_CATALOG
+from Products.GenericSetup.context import DirectoryExportContext
+from senaite.archive import logger
+from senaite.archive.config import PRODUCT_NAME
+from senaite.archive.interfaces import IForArchiving
+from zope.interface import alsoProvides
+
+from bika.lims import api
+from bika.lims.exportimport.genericsetup.structure import exportObjects
+from bika.lims.interfaces import IAnalysisRequest
+from bika.lims.workflow import doActionFor as do_action_for
+from bika.lims.workflow import isTransitionAllowed
+
+
+def can_archive(obj):
+    """Returns whether the object can be archived
+    """
+    if not api.is_object(obj):
+        return False
+
+    if api.is_portal(obj):
+        return False
+
+    # The object itself or its parent has the transition "archive" permitted
+    if not isTransitionAllowed(obj, "archive"):
+        parent = api.get_parent(obj)
+        return can_archive(parent)
+
+    return True
+
+
+def archive_old_objects(context):
+    """Archives (and deletes) all archivable objects from the system that are
+    older than the retention period
+    """
+    query = {"portal_type": ["AnalysisRequest"]}
+    for obj in api.search(query, UID_CATALOG):
+        obj = api.get_object(obj)
+        if can_archive(obj):
+            do_action_for(obj, "archive")
+
+
+def archive_object(obj):
+    """Archives an deletes an object
+    """
+    # Archive object's back references first
+    refs = get_back_references(obj)
+    map(archive_object, refs)
+
+    # Mark the object and its children with the proper interface
+    for ob in extract(obj):
+        if can_archive(ob):
+            alsoProvides(ob, IForArchiving)
+
+    # Do a transaction savepoint
+    transaction.savepoint(optimistic=True)
+
+    # Export
+    archive_path = get_archive_relative_path(obj)
+    export_context = get_export_context()
+    exportObjects(obj, archive_path, export_context)
+
+    # Definitely remove the object
+    delete(obj)
+
+
+def get_back_references(obj):
+    refs = []
+    if IAnalysisRequest.providedBy(obj):
+        # Retests
+        refs.append(obj.get_retest())
+
+        # Secondaries
+        secondaries = obj.getSecondaryAnalysisRequests() or []
+        refs.extend(secondaries)
+
+        # Descendants
+        descendants = obj.getDescendants() or []
+        refs.extend(descendants)
+
+    return filter(None, refs)
+
+
+def get_retention_period():
+    """Returns the retention period in years set in the configuration panel
+    """
+    key = "{}.retention_period".format(PRODUCT_NAME)
+    return api.get_registry_record(key)
+
+
+def get_retention_date_criteria():
+    """Returns the retention date criteria set in the configuration panel
+    """
+    key = "{}.date_criteria".format(PRODUCT_NAME)
+    return api.get_registry_record(key)
+
+
+def is_outside_retention_period(obj):
+    """Returns whether the given object is outside the retention period based on
+    the date criteria and retention period set in the configuration panel.
+    """
+    retention_period = get_retention_period()
+    if retention_period is None:
+        # If no retention period is set, retain the object
+        return False
+
+    # Assume object's creation date as default threshold criteria
+    obj_date = api.get_creation_date(obj)
+    criteria = get_retention_date_criteria()
+    if criteria == "modified":
+        obj_date = get_last_modification_date(obj)
+
+    # Check if the object is old enough
+    threshold_year = datetime.now().year - retention_period
+    return obj_date.year() <= threshold_year
+
+
+def get_last_modification_date(obj):
+    """Returns the last modification date of the object passed-in,
+    transitions dates included
+    """
+    review_history = api.get_review_history(obj)
+    dates = map(lambda rh: rh.get("time", None), review_history)
+    dates.extend([
+        api.get_creation_date(obj),
+        api.get_modification_date(obj)
+    ])
+    return max(filter(None, dates))
+
+
+def get_archive_base_path():
+    """Returns the base path where the archive lives
+    """
+    key = "{}.archive_base_path".format(PRODUCT_NAME)
+    return api.get_registry_record(key)
+
+
+def get_archive_relative_path(obj):
+    """Returns the relative path where the current obj will be archived
+    """
+    parent = api.get_parent(obj)
+    parent_path = api.get_path(parent)
+
+    # Prefix with year/week number
+    created = api.get_creation_date(obj)
+    created = created.strftime("%Y/%W")
+    return "{}{}/".format(created, parent_path)
+
+
+def get_export_context():
+    """Returns the export context to use for archiving
+    """
+    portal = api.get_portal()
+    base_path = get_archive_base_path()
+    return ArchiveDirectoryExportContext(portal.portal_setup, base_path)
+
+
+def delete(obj):
+    """Deletes and un-catalog the object passed-in, as well as all the objects
+    it contains within its hierarchy
+    """
+    # Un-catalog all objects from the hierarchy first
+    for ob in extract(obj):
+        ob_path = api.get_path(ob)
+        catalogs = api.get_catalogs_for(ob)
+        map(lambda cat: cat.uncatalog_object(ob_path), catalogs)
+
+    # Remove the object
+    obj_id = api.get_id(obj)
+    parent = api.get_parent(obj)
+    parent._delObject(obj_id) # Noqa
+
+
+def extract(obj):
+    """Extracts the objects contained within the hierarchy of the obj passed-in,
+    sorted from deepest to shallowest
+    """
+    objects = []
+    if hasattr(aq_base(obj), "objectValues"):
+        for child_obj in obj.objectValues():
+            children = extract(child_obj)
+            objects.extend(children)
+    objects.append(obj)
+    return objects
+
+
+class ArchiveDirectoryExportContext(DirectoryExportContext):
+
+    def get_file_path(self, filename, subdir=None):
+        """Returns the full file path for the filename passed in
+        """
+        if subdir is None:
+            prefix = self._profile_path
+        else:
+            prefix = os.path.join(self._profile_path, subdir)
+
+        return os.path.join(prefix, filename)
+
+    def writeDataFile(self, filename, text, content_type, subdir=None):
+        # Create the directory if it does not exist yet
+        file_path = self.get_file_path(filename, subdir=subdir)
+        logger.info("Archiving file ({}): {}".format(content_type, file_path))
+        dir_path = os.path.dirname(file_path)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+
+        # Delegate to superclass
+        base = super(ArchiveDirectoryExportContext, self)
+        base.writeDataFile(filename, text, content_type, subdir=subdir)

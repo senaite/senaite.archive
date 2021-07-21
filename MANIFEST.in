@@ -1,0 +1,8 @@
+include LICENSE
+include *.rst
+include *.md
+exclude MANIFEST.in
+recursive-exclude static *
+recursive-include src/senaite/archive *
+recursive-exclude src/senaite/archive *.pyc *.mo
+recursive-exclude src/senaite/archive/locales/.tx *

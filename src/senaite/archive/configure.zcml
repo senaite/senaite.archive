@@ -1,0 +1,58 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="senaite.archive">
+
+  <five:registerPackage package="." initialize=".initialize"/>
+
+  <!-- Register Translations -->
+  <i18n:registerTranslations directory="locales" />
+
+  <!-- Import senaite.core permissions -->
+  <include package="bika.lims" file="permissions.zcml" />
+
+  <!-- Import senaite.archive permissions -->
+  <include file="permissions.zcml" />
+
+  <!-- Package includes -->
+  <include package=".adapters"/>
+  <include package=".browser"/>
+  <include package=".monkeys"/>
+  <include package=".workflow"/>
+
+  <!-- Default profile -->
+  <genericsetup:registerProfile
+      name="default"
+      title="SENAITE ARCHIVE"
+      directory="profiles/default"
+      description="Records archiving for SENAITE"
+      pre_handler="senaite.archive.setuphandlers.pre_install"
+      post_handler="senaite.archive.setuphandlers.post_install"
+      provides="Products.GenericSetup.interfaces.EXTENSION" />
+
+  <!-- Generic Setup Handler -->
+  <genericsetup:importStep
+      name="senaite.archive.setuphandler"
+      title="SENAITE.ARCHIVE Setup Handler"
+      description="Run various configuration actions"
+      handler="senaite.archive.setuphandlers.setup_handler"/>
+
+  <!-- Uninstall profile -->
+  <genericsetup:registerProfile
+      name="uninstall"
+      title="SENAITE ARCHIVE (uninstall)"
+      directory="profiles/uninstall"
+      description="Records archiving for SENAITE"
+      post_handler="senaite.archive.setuphandlers.post_uninstall"
+      provides="Products.GenericSetup.interfaces.EXTENSION" />
+
+  <!-- Export step for archiving -->
+  <genericsetup:exportStep
+      name="senaite.archive.archive_old_objects"
+      title="SENAITE: Archive old objects"
+      description="Archives objects that are outside of the retention period"
+      handler=".utils.archive_old_objects" />
+
+</configure>
