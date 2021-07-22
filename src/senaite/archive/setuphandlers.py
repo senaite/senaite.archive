@@ -19,6 +19,7 @@
 # Some rights reserved, see README and LICENSE.
 
 from plone import api as ploneapi
+from plone.registry.interfaces import IRegistry
 from Products.DCWorkflow.Guard import Guard
 from senaite.archive import logger
 from senaite.archive import messageFactory as _
@@ -26,8 +27,15 @@ from senaite.archive import permissions
 from senaite.archive.config import PRODUCT_NAME
 from senaite.archive.config import PROFILE_ID
 from senaite.archive.config import UNINSTALL_ID
+from zope.component import getUtility
 
 from bika.lims import api
+
+# Tuples of (folder_id, folder_name, type)
+PORTAL_FOLDERS = [
+    ("archive", "Archive", "ArchiveFolder"),
+]
+
 
 WORKFLOWS_TO_UPDATE = {
     "bika_ar_workflow": {
@@ -72,6 +80,9 @@ def setup_handler(context):
 
     # Setup workflows
     setup_workflows()
+
+    # Portal folders
+    add_portal_folders(portal)
 
     logger.info("{} setup handler [DONE]".format(PRODUCT_NAME.upper()))
 
@@ -118,6 +129,9 @@ def post_uninstall(portal_setup):
     # Remove entries from configuration registry
     registry_id = "{}.archive_base_path".format(PRODUCT_NAME)
     ploneapi.portal.set_registry_record(registry_id, u"")
+
+    # Remove portal folders
+    del_portal_folders(portal)
 
     logger.info("{} uninstall handler [DONE]".format(PRODUCT_NAME.upper()))
 
@@ -231,3 +245,60 @@ def update_workflow_transition(workflow, transition_id, settings):
     guard_props = settings.get("guard", guard_props)
     guard.changeFromProperties(guard_props)
     transition.guard = guard
+
+
+def add_portal_folders(portal):
+    """Adds the archive-specific portal folders
+    """
+    logger.info("Adding portal folders ...")
+    for folder_id, folder_name, portal_type in PORTAL_FOLDERS:
+        add_obj(portal, folder_id, folder_name, portal_type)
+    logger.info("Adding portal folders [DONE]")
+
+
+def del_portal_folders(portal):
+    """Remove archive-specific portal folders
+    """
+    logger.info("Removing portal folders ...")
+    portal_path = api.get_path(portal)
+    for folder_id, folder_name, portal_type in PORTAL_FOLDERS:
+        if portal.get(folder_id):
+            logger.info("Removing: {}/{}".format(portal_path, folder_id))
+            portal._delObject(folder_id)
+
+    logger.info("Removing portal folders [DONE]")
+
+
+def add_obj(container, obj_id, obj_name, obj_type):
+    """Adds an object into the given container
+    """
+    pt = api.get_tool("portal_types")
+    ti = pt.getTypeInfo(container)
+
+    # get the current allowed types for the object
+    allowed_types = ti.allowed_content_types
+
+    def show_in_nav(obj):
+        if hasattr(obj, "setExpirationDate"):
+            obj.setExpirationDate(None)
+        if hasattr(obj, "setExcludeFromNav"):
+            obj.setExcludeFromNav(False)
+
+    if container.get(obj_id):
+        # Object already exists
+        obj = container.get(obj_id)
+        show_in_nav(obj)
+        return
+
+    path = api.get_path(container)
+    logger.info("Adding: {}/{}".format(path, obj_id))
+
+    # append the allowed type
+    ti.allowed_content_types = allowed_types + (obj_type, )
+
+    # Create the object
+    obj = container.invokeFactory(obj_type, obj_id, title=obj_name)
+    show_in_nav(obj)
+
+    # reset the allowed content types
+    ti.allowed_content_types = allowed_types

@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2021-07-22 09:37+0000\n"
+"POT-Creation-Date: 2021-07-22 11:07+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,12 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: senaite.archive\n"
 
-#: senaite.archive/src/senaite/archive/setuphandlers.py:51
+#: senaite.archive/src/senaite/archive/profiles/default/types/ArchiveFolder.xml
+#: senaite.archive/src/senaite/archive/setuphandlers.py:59
 msgid "Archive"
 msgstr ""
 
-#: senaite.archive/src/senaite/archive/browser/controlpanel.py:69
+#: senaite.archive/src/senaite/archive/browser/controlpanel.py:94
 #: senaite.archive/src/senaite/archive/profiles/default/controlpanel.xml
 msgid "Archive Settings"
 msgstr ""
@@ -34,23 +35,27 @@ msgstr ""
 msgid "Archive control panel"
 msgstr ""
 
-#: senaite.archive/src/senaite/archive/browser/controlpanel.py:57
+#: senaite.archive/src/senaite/archive/browser/controlpanel.py:81
 msgid "Archive path"
 msgstr ""
 
-#: senaite.archive/src/senaite/archive/browser/controlpanel.py:46
+#: senaite.archive/src/senaite/archive/browser/controlpanel.py:70
 msgid "Date criteria"
 msgstr ""
 
-#: senaite.archive/src/senaite/archive/browser/controlpanel.py:47
+#: senaite.archive/src/senaite/archive/browser/controlpanel.py:71
 msgid "Date used to check whether an electronic record is outside of the retention period. Default: 'created'"
 msgstr ""
 
-#: senaite.archive/src/senaite/archive/browser/controlpanel.py:58
+#: senaite.archive/src/senaite/archive/browser/controlpanel.py:82
 msgid "Full path of the local directory where archived objects will be stored. User that runs the instance must have write access."
 msgstr ""
 
-#: senaite.archive/src/senaite/archive/browser/controlpanel.py:36
+#: senaite.archive/src/senaite/archive/browser/controlpanel.py:38
+msgid "Not a directory or does not exist"
+msgstr ""
+
+#: senaite.archive/src/senaite/archive/browser/controlpanel.py:60
 msgid "Number of years you want to retain data for. Default: 2 (years)"
 msgstr ""
 
@@ -58,7 +63,7 @@ msgstr ""
 msgid "Records archiving for SENAITE"
 msgstr ""
 
-#: senaite.archive/src/senaite/archive/browser/controlpanel.py:35
+#: senaite.archive/src/senaite/archive/browser/controlpanel.py:59
 msgid "Retention period"
 msgstr ""
 

@@ -17,28 +17,3 @@
 #
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
-
-from senaite.lims.interfaces import ISenaiteLIMS
-from zope.interface import Interface
-
-from bika.lims.interfaces import IBikaLIMS
-from bika.lims.interfaces import IDoNotSupportSnapshots
-from bika.lims.interfaces import IHideActionsMenu
-
-
-class ISenaiteArchiveLayer(IBikaLIMS, ISenaiteLIMS):
-    """Zope 3 browser Layer interface specific for senaite.queue
-    This interface is referred in profiles/default/browserlayer.xml.
-    All views and viewlets register against this layer will appear in the site
-    only when the add-on installer has been run.
-    """
-
-
-class IForArchiving(Interface):
-    """Marker interface for objects that are being archived
-    """
-
-
-class IArchiveFolder(IHideActionsMenu, IDoNotSupportSnapshots):
-    """Marker interface for ArchiveFolder content
-    """

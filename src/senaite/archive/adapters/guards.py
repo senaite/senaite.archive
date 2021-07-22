@@ -21,15 +21,15 @@
 from senaite.archive import is_installed
 from senaite.archive.utils import get_back_references
 from senaite.archive.utils import is_outside_retention_period
-from zope.interface import implements
+from zope.interface import implementer
 
 from bika.lims.interfaces import IAnalysisRequest
 from bika.lims.interfaces import IGuardAdapter
 from bika.lims.workflow import isTransitionAllowed
 
 
+@implementer(IGuardAdapter)
 class SampleGuardAdapter(object):
-    implements(IGuardAdapter)
 
     def __init__(self, context):
         self.context = context
