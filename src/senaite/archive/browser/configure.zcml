@@ -17,4 +17,14 @@
     directory="static"
     layer="senaite.archive.interfaces.ISenaiteArchiveLayer" />
 
+  <!-- Archive configuration viewlet -->
+  <browser:viewlet
+    for="*"
+    name="senaite.archive.archive_configuration_viewlet"
+    class=".viewlets.ArchiveConfigurationViewlet"
+    manager="plone.app.layout.viewlets.interfaces.IAboveContent"
+    template="templates/configuration_viewlet.pt"
+    permission="senaite.core.permissions.ManageBika"
+    layer="senaite.archive.interfaces.ISenaiteArchiveLayer" />
+
 </configure>

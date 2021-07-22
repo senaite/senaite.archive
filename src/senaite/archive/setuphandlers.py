@@ -18,6 +18,7 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from plone import api as ploneapi
 from Products.DCWorkflow.Guard import Guard
 from senaite.archive import logger
 from senaite.archive import messageFactory as _
@@ -113,6 +114,10 @@ def post_uninstall(portal_setup):
     logger.info("{} uninstall handler [BEGIN]".format(PRODUCT_NAME.upper()))
     context = portal_setup._getImportContext(UNINSTALL_ID)  # noqa
     portal = context.getSite()  # noqa
+
+    # Remove entries from configuration registry
+    registry_id = "{}.archive_base_path".format(PRODUCT_NAME)
+    ploneapi.portal.set_registry_record(registry_id, u"")
 
     logger.info("{} uninstall handler [DONE]".format(PRODUCT_NAME.upper()))
 

@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2021-07-21 16:03+0000\n"
+"POT-Creation-Date: 2021-07-22 09:37+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,13 +17,21 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: senaite.archive\n"
 
-#: senaite.archive/src/senaite/archive/setuphandlers.py:50
+#: senaite.archive/src/senaite/archive/setuphandlers.py:51
 msgid "Archive"
 msgstr ""
 
 #: senaite.archive/src/senaite/archive/browser/controlpanel.py:69
 #: senaite.archive/src/senaite/archive/profiles/default/controlpanel.xml
 msgid "Archive Settings"
+msgstr ""
+
+#: senaite.archive/src/senaite/archive/browser/templates/configuration_viewlet.pt:9
+msgid "Archive configuration"
+msgstr ""
+
+#: senaite.archive/src/senaite/archive/browser/templates/configuration_viewlet.pt:14
+msgid "Archive control panel"
 msgstr ""
 
 #: senaite.archive/src/senaite/archive/browser/controlpanel.py:57
@@ -60,4 +68,8 @@ msgstr ""
 
 #: senaite.archive/src/senaite/archive/configure.zcml:49
 msgid "SENAITE ARCHIVE (uninstall)"
+msgstr ""
+
+#: senaite.archive/src/senaite/archive/browser/templates/configuration_viewlet.pt:11
+msgid "There are some settings that require your attention"
 msgstr ""
