@@ -27,7 +27,7 @@ from bika.lims import api
 class ArchiveConfigurationViewlet(ViewletBase):
     """Viewlet that reminds user to review the configuration of Archive
     """
-    template = ViewPageTemplateFile("templates/configuration_viewlet.pt")
+    index = ViewPageTemplateFile("templates/configuration_viewlet.pt")
 
     def is_visible(self):
         """Returns whether the viewlet must be visible or not
@@ -47,8 +47,3 @@ class ArchiveConfigurationViewlet(ViewletBase):
         authenticator = self.request.get("_authenticator")
         base_url = "{}/@@archive-controlpanel?_authenticator={}"
         return base_url.format(portal_url, authenticator)
-
-    def index(self):
-        if not self.is_visible():
-            return ""
-        return self.template()
