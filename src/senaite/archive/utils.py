@@ -20,8 +20,8 @@
 
 import os
 import transaction
-from datetime import datetime
 from Acquisition import aq_base
+from datetime import datetime
 from Products.Archetypes.config import UID_CATALOG
 from Products.GenericSetup.context import DirectoryExportContext
 from senaite.archive import logger
