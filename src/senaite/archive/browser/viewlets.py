@@ -18,9 +18,10 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from plone.app.layout.viewlets import ViewletBase
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.archive.utils import get_archive_base_path
+
 from bika.lims import api
 
 
