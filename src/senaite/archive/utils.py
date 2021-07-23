@@ -101,10 +101,9 @@ def archive_object(obj):
 def create_archive_item(obj):
     """Creates an archive item that represents the object passed-in
     """
-    archive = api.get_portal().archive
-    title = api.get_title(obj)
     # Giving the field values on creation saves a reindex after edition
     field_values = dict(
+        title=api.get_title(obj),
         item_id=api.get_id(obj),
         item_path=api.get_path(obj),
         item_type=api.get_portal_type(obj),
@@ -113,8 +112,8 @@ def create_archive_item(obj):
         item_summary=get_summary(obj),
         exclude_from_nav=True
     )
-    item = api.create(archive, "ArchiveItem", title=title, **field_values)
-    return item
+    archive = api.get_portal().archive
+    return api.create(archive, "ArchiveItem", **field_values)
 
 
 def get_summary(obj):
