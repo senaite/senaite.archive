@@ -87,6 +87,28 @@ WORKFLOWS_TO_UPDATE = {
                 }
             },
         }
+    },
+    "bika_worksheet_workflow": {
+        "permissions": (),
+        "states": {
+            "verified": {
+                "transitions": ["archive"]
+            },
+            "rejected": {
+                "transitions": ["archive"]
+            },
+        },
+        "transitions": {
+            "archive": {
+                "title": _("Archive"),
+                "new_state": "",
+                "guard": {
+                    "guard_permissions": permissions.TransitionArchive,
+                    "guard_roles": "",
+                    "guard_expr": "python:here.guard_handler('archive')",
+                }
+            },
+        }
     }
 }
 

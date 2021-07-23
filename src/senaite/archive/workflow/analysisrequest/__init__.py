@@ -18,26 +18,20 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from senaite.archive.workflow import BaseGuardAdapter
+from senaite.archive.workflow import TransitionEventHandler
 from senaite.archive.workflow.analysisrequest import events
-
-
-def TransitionEventHandler(before_after, sample, event): # noqa lowercase
-    if not event.transition:
-        return
-
-    function_name = "{}_{}".format(before_after, event.transition.id)
-    if hasattr(events, function_name):
-        # Call the function from events package
-        getattr(events, function_name)(sample)
-
-
-def BeforeTransitionEventHandler(sample, event): # noqa lowercase
-    """Actions to be done just before a transition for a sample takes place
-    """
-    TransitionEventHandler("before", sample, event)
+from senaite.archive.workflow.analysisrequest import guards
 
 
 def AfterTransitionEventHandler(sample, event): # noqa lowercase
-    """Actions to be done just after a transition for a sample takes place
+    """Actions to be done just before a transition for a sample takes place
     """
-    TransitionEventHandler("after", sample, event)
+    TransitionEventHandler("after", sample, events, event)
+
+
+class GuardAdapter(BaseGuardAdapter):
+    """Adapter for AnalysisRequest guards
+    """
+    def get_module(self):
+        return guards

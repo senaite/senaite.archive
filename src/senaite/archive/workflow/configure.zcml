@@ -8,4 +8,11 @@
          Products.DCWorkflow.interfaces.IAfterTransitionEvent"
     handler=".analysisrequest.AfterTransitionEventHandler" />
 
+  <!-- Guard handler for AnalysisRequest -->
+  <adapter
+      for="bika.lims.interfaces.IAnalysisRequest"
+      provides="bika.lims.interfaces.IGuardAdapter"
+      factory=".analysisrequest.GuardAdapter"
+      name="senaite.archive.analysisrequest.guard" />
+
 </configure>

@@ -2,13 +2,6 @@
     xmlns="http://namespaces.zope.org/zope"
     i18n_domain="senaite.archive">
 
-  <!-- Guard handler for Sample (aka AnalysisRequest) content type -->
-  <adapter
-    for="bika.lims.interfaces.IAnalysisRequest"
-    provides="bika.lims.interfaces.IGuardAdapter"
-    factory=".guards.SampleGuardAdapter"
-    name="senaite.archive.adapter.guard.sample" />
-
   <!-- Use SENAITE's default Content XML Adapter for export/import -->
   <adapter
       for="senaite.archive.interfaces.IForArchiving

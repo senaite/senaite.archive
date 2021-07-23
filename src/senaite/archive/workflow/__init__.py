@@ -17,3 +17,35 @@
 #
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
+
+from zope.interface import implementer
+
+from bika.lims.interfaces import IGuardAdapter
+
+
+def TransitionEventHandler(before_after, obj, mod, event): # noqa lowercase
+    if not event.transition:
+        return
+
+    function_name = "{}_{}".format(before_after, event.transition.id)
+    if hasattr(mod, function_name):
+        # Call the function from events package
+        getattr(mod, function_name)(obj)
+
+
+@implementer(IGuardAdapter)
+class BaseGuardAdapter(object):
+
+    def __init__(self, context):
+        self.context = context
+
+    def get_module(self):
+        raise NotImplementedError("To be implemented by child classes")
+
+    def guard(self, action):
+        func_name = "guard_{}".format(action)
+        module = self.get_module()
+        func = getattr(module, func_name, None)
+        if func:
+            return func(self.context)
+        return True
