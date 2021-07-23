@@ -78,8 +78,8 @@ class ArchiveFolderView(ListingView):
         self.review_states = [
             {
                 "id": "default",
-                "title": _("Samples"),
-                "contentFilter": {"item_type": "AnalysisRequest"},
+                "title": _("All"),
+                "contentFilter": {},
                 "columns": self.columns.keys(),
             },
         ]

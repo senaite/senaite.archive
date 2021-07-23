@@ -8,11 +8,24 @@
          Products.DCWorkflow.interfaces.IAfterTransitionEvent"
     handler=".analysisrequest.AfterTransitionEventHandler" />
 
+  <!-- After event handler for Worksheet -->
+  <subscriber
+      for="bika.lims.interfaces.IWorksheet
+         Products.DCWorkflow.interfaces.IAfterTransitionEvent"
+      handler=".worksheet.AfterTransitionEventHandler" />
+
   <!-- Guard handler for AnalysisRequest -->
   <adapter
       for="bika.lims.interfaces.IAnalysisRequest"
       provides="bika.lims.interfaces.IGuardAdapter"
       factory=".analysisrequest.GuardAdapter"
       name="senaite.archive.analysisrequest.guard" />
+
+  <!-- Guard handler for Worksheet -->
+  <adapter
+      for="bika.lims.interfaces.IWorksheet"
+      provides="bika.lims.interfaces.IGuardAdapter"
+      factory=".worksheet.GuardAdapter"
+      name="senaite.archive.worksheet.guard" />
 
 </configure>
