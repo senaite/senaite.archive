@@ -27,4 +27,12 @@
     permission="senaite.core.permissions.ManageBika"
     layer="senaite.archive.interfaces.ISenaiteArchiveLayer" />
 
+  <!-- Archive folder view (for historical searches) -->
+  <browser:page
+      for="senaite.archive.interfaces.IArchiveFolder"
+      name="view"
+      class=".archivefolder.ArchiveFolderView"
+      permission="senaite.core.permissions.ManageBika"
+      layer="senaite.archive.interfaces.ISenaiteArchiveLayer" />
+
 </configure>

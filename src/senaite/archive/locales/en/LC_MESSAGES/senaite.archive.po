@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2021-07-22 11:07+0000\n"
+"POT-Creation-Date: 2021-07-23 10:27+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -14,9 +14,17 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: DOMAIN\n"
 
+#: senaite/archive/behaviors/configure.zcml:15
+msgid "Adds ArchiveItem behavior"
+msgstr ""
+
 #: senaite/archive/profiles/default/types/ArchiveFolder.xml
-#: senaite/archive/setuphandlers.py:59
+#: senaite/archive/setuphandlers.py:81
 msgid "Archive"
+msgstr ""
+
+#: senaite/archive/profiles/default/types/ArchiveItem.xml
+msgid "Archive Item"
 msgstr ""
 
 #: senaite/archive/browser/controlpanel.py:94
@@ -36,6 +44,14 @@ msgstr ""
 msgid "Archive path"
 msgstr ""
 
+#: senaite/archive/behaviors/configure.zcml:15
+msgid "ArchiveItem"
+msgstr ""
+
+#: senaite/archive/browser/archivefolder.py:65
+msgid "Created"
+msgstr ""
+
 #: senaite/archive/browser/controlpanel.py:70
 msgid "Date criteria"
 msgstr ""
@@ -48,6 +64,38 @@ msgstr ""
 msgid "Full path of the local directory where archived objects will be stored. User that runs the instance must have write access."
 msgstr ""
 
+#: senaite/archive/browser/archivefolder.py:57
+msgid "ID"
+msgstr ""
+
+#: senaite/archive/behaviors/archiveitem.py:42
+msgid "Item ID"
+msgstr ""
+
+#: senaite/archive/behaviors/archiveitem.py:53
+msgid "Item creation date"
+msgstr ""
+
+#: senaite/archive/behaviors/archiveitem.py:59
+msgid "Item modification date"
+msgstr ""
+
+#: senaite/archive/behaviors/archiveitem.py:47
+msgid "Item path"
+msgstr ""
+
+#: senaite/archive/behaviors/archiveitem.py:64
+msgid "Item summary"
+msgstr ""
+
+#: senaite/archive/behaviors/archiveitem.py:37
+msgid "Item type"
+msgstr ""
+
+#: senaite/archive/browser/archivefolder.py:69
+msgid "Modified"
+msgstr ""
+
 #: senaite/archive/browser/controlpanel.py:38
 msgid "Not a directory or does not exist"
 msgstr ""
@@ -56,7 +104,11 @@ msgstr ""
 msgid "Number of years you want to retain data for. Default: 2 (years)"
 msgstr ""
 
-#: senaite/archive/configure.zcml:33
+#: senaite/archive/browser/archivefolder.py:73
+msgid "Path"
+msgstr ""
+
+#: senaite/archive/configure.zcml:34
 msgid "Records archiving for SENAITE"
 msgstr ""
 
@@ -64,14 +116,22 @@ msgstr ""
 msgid "Retention period"
 msgstr ""
 
-#: senaite/archive/configure.zcml:33
+#: senaite/archive/configure.zcml:34
 msgid "SENAITE ARCHIVE"
 msgstr ""
 
-#: senaite/archive/configure.zcml:49
+#: senaite/archive/configure.zcml:50
 msgid "SENAITE ARCHIVE (uninstall)"
+msgstr ""
+
+#: senaite/archive/browser/archivefolder.py:81
+msgid "Samples"
 msgstr ""
 
 #: senaite/archive/browser/templates/configuration_viewlet.pt:11
 msgid "There are some settings that require your attention"
+msgstr ""
+
+#: senaite/archive/browser/archivefolder.py:61
+msgid "Type"
 msgstr ""

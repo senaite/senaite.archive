@@ -1,0 +1,17 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="senaite.archive">
+
+  <include package="plone.behavior" file="meta.zcml"/>
+
+  <plone:behavior
+      name="senaite.archive"
+      title="ArchiveItem"
+      description="Adds ArchiveItem behavior"
+      provides=".archiveitem.IArchiveItemBehavior"
+      factory=".archiveitem.ArchiveItem"
+      for="plone.dexterity.interfaces.IDexterityContent"
+      marker="senaite.archive.interfaces.IArchiveItem" />
+
+</configure>

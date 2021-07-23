@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<tool-setup>
+  <required tool_id="archive_catalog" class="senaite.archive.catalog.ArchiveCatalog"/>
+</tool-setup>

@@ -18,16 +18,17 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+import time
+import transaction
 from plone import api as ploneapi
-from plone.registry.interfaces import IRegistry
 from Products.DCWorkflow.Guard import Guard
 from senaite.archive import logger
 from senaite.archive import messageFactory as _
 from senaite.archive import permissions
+from senaite.archive.catalog import CATALOG_ARCHIVE
 from senaite.archive.config import PRODUCT_NAME
 from senaite.archive.config import PROFILE_ID
 from senaite.archive.config import UNINSTALL_ID
-from zope.component import getUtility
 
 from bika.lims import api
 
@@ -36,6 +37,27 @@ PORTAL_FOLDERS = [
     ("archive", "Archive", "ArchiveFolder"),
 ]
 
+INDEXES = [
+    # Tuples of (catalog, id, indexed attribute, type)
+    (CATALOG_ARCHIVE, "item_id", "FieldIndex"),
+    (CATALOG_ARCHIVE, "item_type", "FieldIndex"),
+    (CATALOG_ARCHIVE, "item_created", "DateIndex"),
+    (CATALOG_ARCHIVE, "item_modified", "DateIndex"),
+]
+
+COLUMNS = [
+    # Tuples of (catalog, column name)
+    (CATALOG_ARCHIVE, "item_id"),
+    (CATALOG_ARCHIVE, "item_type"),
+    (CATALOG_ARCHIVE, "item_created"),
+    (CATALOG_ARCHIVE, "item_modified"),
+    (CATALOG_ARCHIVE, "item_path"),
+]
+
+CATALOGS_BY_TYPE = [
+    # Tuples of (type, [catalog]) Additive behavior only
+    ("ArchiveItem", [CATALOG_ARCHIVE, ])
+]
 
 WORKFLOWS_TO_UPDATE = {
     "bika_ar_workflow": {
@@ -83,6 +105,9 @@ def setup_handler(context):
 
     # Portal folders
     add_portal_folders(portal)
+
+    # Setup catalogs
+    setup_catalogs(portal)
 
     logger.info("{} setup handler [DONE]".format(PRODUCT_NAME.upper()))
 
@@ -302,3 +327,107 @@ def add_obj(container, obj_id, obj_name, obj_type):
 
     # reset the allowed content types
     ti.allowed_content_types = allowed_types
+
+
+def setup_catalogs(portal):
+    """Setup Plone catalogs
+    """
+    logger.info("Setup Catalogs ...")
+    to_catalog = {}
+    to_reindex = {}
+
+    # Assign catalogs by type (additive only)
+    at = api.get_tool("archetype_tool")
+    for portal_type, catalogs in CATALOGS_BY_TYPE:
+        existing = at.getCatalogsByType(portal_type)
+        existing = map(lambda cat: cat.id, existing)
+        missing = filter(lambda cat: cat not in existing, catalogs)
+        if missing:
+            # Assign the type to the catalogs while preserving the order
+            existing.extend(missing)
+            at.setCatalogsByType(portal_type, existing)
+            # Keep track of the types that need to be catalogued
+            for cat_id in missing:
+                types = list(set(to_catalog.get(cat_id, [])+[portal_type, ]))
+                to_catalog[cat_id] = types
+
+    # Setup catalog indexes
+    logger.info("Setup indexes ...")
+    for catalog_id, name, meta_type in INDEXES:
+        catalog = api.get_tool(catalog_id)
+        if name in catalog.indexes():
+            logger.info("Index '{}' already in '{}'".format(name, catalog_id))
+            continue
+
+        logger.info("Adding index '{}' to '{}'".format(name, catalog_id))
+        catalog.addIndex(name, meta_type)
+
+        # Add the indexes to be re-indexed for this catalog
+        to_reindex.setdefault(catalog_id, []).append(name)
+
+    # Setup catalog metadata columns
+    logger.info("Setup metadata columns ...")
+    for catalog_id, name in COLUMNS:
+        catalog = api.get_tool(catalog_id)
+        if name in catalog.schema():
+            logger.info("Column '{}' already in '{}'".format(name, catalog_id))
+            continue
+
+        logger.info("Adding column '{}' to '{}'".format(name, catalog_id))
+        catalog.addColumn(name)
+
+        # We need to re-catalog whole objects, not only some indexes
+        to_reindex.update({catalog_id: []})
+
+    # Catalog objects to newly-assigned catalogs
+    for catalog_id, portal_types in to_catalog.items():
+        if not portal_types:
+            continue
+        types = ", ".join(portal_types)
+        logger.info("Cataloguing {}: {} ...".format(catalog_id, types))
+        query = {"portal_type": portal_types}
+        brains = api.search(query, "uid_catalog")
+        re_catalog(brains, catalog_id)
+
+    # Re-index objects in already-assigned catalogs
+    for catalog_id, indexes in to_reindex.items():
+        if indexes:
+            # We only need to re-index
+            brains = api.search({}, catalog_id)
+            re_catalog(brains, catalog_id, idxs=indexes, update_meta=0)
+        else:
+            # We need to re-catalog the whole object
+            brains = api.search({}, catalog_id)
+            re_catalog(brains, catalog_id)
+
+    logger.info("Setup Catalogs [DONE]")
+
+
+def re_catalog(brains, catalog_id, idxs=None, update_meta=1):
+    cat = api.get_tool(catalog_id)
+    total = len(brains)
+    for num, brain in enumerate(brains):
+        if num % 1000 == 0:
+            logger.info(
+                "Cataloguing {}: {}/{}".format(catalog_id, num, total))
+
+        if num > 0 and num % 10000 == 0:
+            portal = api.get_portal()
+            commit_transaction(portal)
+
+        # Catalog the object
+        obj = api.get_object(brain)
+        obj_url = api.get_path(obj)
+        cat.catalog_object(obj, obj_url, idxs=idxs, update_metadata=update_meta)
+
+        # Flush the object from memory
+        obj._p_deactivate()
+
+
+def commit_transaction(portal):
+    start = time.time()
+    logger.info("Commit transaction ...")
+    transaction.commit()
+    end = time.time()
+    logger.info("Commit transaction ... Took {:.2f}s [DONE]"
+                .format(end - start))

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <object name="portal_types">
+  <object name="ArchiveItem" meta_type="Dexterity FTI" />
   <object name="ArchiveFolder" meta_type="Dexterity FTI" />
 </object>

@@ -19,9 +19,11 @@
 # Some rights reserved, see README and LICENSE.
 
 import os
+import six
 import transaction
 from Acquisition import aq_base
 from datetime import datetime
+from DateTime import DateTime
 from Products.Archetypes.config import UID_CATALOG
 from Products.GenericSetup.context import DirectoryExportContext
 from senaite.archive import logger
@@ -65,13 +67,17 @@ def archive_old_objects(context):
 
 
 def archive_object(obj):
-    """Archives an deletes an object
+    """Archives an deletes an object, while creating a new lightweight object
+    representing the former and only used for historical searches
     """
-    # Archive object's back references first
+    # Archive object's back references first. Won't be possible to delete the
+    # object otherwise
     refs = get_back_references(obj)
     map(archive_object, refs)
 
-    # Mark the object and its children with the proper interface
+    # Mark the object and its children with IForArchiving interface, so the
+    # generic setup export machinery does not dismiss them when exporting the
+    # contents into XML files. See monkeys/genericsetup/can_export
     for ob in extract(obj):
         if can_archive(ob):
             alsoProvides(ob, IForArchiving)
@@ -79,13 +85,43 @@ def archive_object(obj):
     # Do a transaction savepoint
     transaction.savepoint(optimistic=True)
 
-    # Export
+    # Export object to the Archive's path in filesystem
     archive_path = get_archive_relative_path(obj)
     export_context = get_export_context()
     exportObjects(obj, archive_path, export_context)
 
-    # Definitely remove the object
+    # Create the ArchiveItem object, a DT lightweight object with it's own
+    # catalog , used for historical searches
+    create_archive_item(obj)
+
+    # Definitely remove (and uncatalog) the object
     delete(obj)
+
+
+def create_archive_item(obj):
+    """Creates an archive item that represents the object passed-in
+    """
+    archive = api.get_portal().archive
+    title = api.get_title(obj)
+    # Giving the field values on creation saves a reindex after edition
+    field_values = dict(
+        item_id=api.get_id(obj),
+        item_path=api.get_path(obj),
+        item_type=api.get_portal_type(obj),
+        item_created=api.get_creation_date(obj),
+        item_modified=get_last_modification_date(obj),
+        item_summary=get_summary(obj),
+        exclude_from_nav=True
+    )
+    item = api.create(archive, "ArchiveItem", title=title, **field_values)
+    return item
+
+
+def get_summary(obj):
+    """Returns a summary of the object to be kept for furhter reference
+    """
+    # TODO portal_type-specific
+    return api.get_title(obj)
 
 
 def get_back_references(obj):
@@ -206,6 +242,28 @@ def extract(obj):
             objects.extend(children)
     objects.append(obj)
     return objects
+
+
+def to_field_datetime(value):
+    """Converts the value to a valid datetime instance, suitable for the value
+    assignment to schema.Datetime fields
+    """
+    if isinstance(value, DateTime):
+        value = value.asdatetime()
+    elif isinstance(value, six.string_types):
+        # convert string to datetime
+        dt = api.to_date(value)
+        if dt is not None:
+            value = dt.asdatetime()
+
+    # Ensure the datetime object has no timezone set
+    # TypeError: can't compare offset-naive and offset-aware datetimes
+    if isinstance(value, datetime):
+        value = value.replace(tzinfo=None)
+    else:
+        value = None
+
+    return value
 
 
 class ArchiveDirectoryExportContext(DirectoryExportContext):

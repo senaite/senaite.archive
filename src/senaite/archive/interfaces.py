@@ -42,3 +42,13 @@ class IForArchiving(Interface):
 class IArchiveFolder(IHideActionsMenu, IDoNotSupportSnapshots):
     """Marker interface for ArchiveFolder content
     """
+
+
+class IArchiveItem(IHideActionsMenu, IDoNotSupportSnapshots):
+    """Marker interface for ArchiveItem content
+    """
+
+
+class IArchiveCatalog(Interface):
+    """Archive catalog interface
+    """

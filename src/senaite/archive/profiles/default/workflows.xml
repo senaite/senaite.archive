@@ -6,5 +6,9 @@
     <type type_id="ArchiveFolder">
       <bound-workflow workflow_id="senaite_one_state_workflow"/>
     </type>
+    <type type_id="ArchiveItem">
+      <bound-workflow workflow_id="senaite_one_state_workflow"/>
+    </type>
+
   </bindings>
 </object>

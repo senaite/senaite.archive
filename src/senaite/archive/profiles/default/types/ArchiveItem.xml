@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<object name="ArchiveFolder"
+<object name="ArchiveItem"
         meta_type="Dexterity FTI"
         i18n:domain="senaite.archive"
         xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
   <!-- Title and Description -->
-  <property name="title" i18n:translate="">Archive</property>
+  <property name="title" i18n:translate="">Archive Item</property>
   <property name="description" i18n:translate=""/>
 
   <!-- content-type icon -->
-  <property name="icon_expr">string:${portal_url}/++resource++senaite.archive.static/archive.png</property>
+  <property name="icon_expr">string:${portal_url}/++resource++senaite.archive.static/archive_item.png</property>
 
   <!-- factory name; usually the same as type name -->
-  <property name="factory">ArchiveFolder</property>
+  <property name="factory">ArchiveItem</property>
 
   <!-- URL TALES expression to add an item TTW -->
-  <property name="add_view_expr">string:${folder_url}/++add++ArchiveFolder</property>
+  <property name="add_view_expr">string:${folder_url}/++add++ArchiveItem</property>
 
   <property name="link_target"/>
   <property name="immediate_view">view</property>
@@ -27,7 +27,6 @@
   <property name="filter_content_types">True</property>
   <!-- If filtering, what's allowed -->
   <property name="allowed_content_types">
-    <element value="ArchiveItem" />
   </property>
 
   <property name="allow_discussion">False</property>
@@ -44,12 +43,15 @@
   <property name="add_permission">cmf.AddPortalContent</property>
 
   <!-- Python class for content items of this sort -->
-  <property name="schema">senaite.archive.content.archivefolder.IArchiveFolder</property>
-  <property name="klass">senaite.archive.content.archivefolder.ArchiveFolder</property>
+  <property name="schema">senaite.archive.content.archiveitem.IArchiveItem</property>
+  <property name="klass">senaite.archive.content.archiveitem.ArchiveItem</property>
 
   <!-- Dexterity behaviours for this type -->
   <property name="behaviors">
+    <element value="bika.lims.interfaces.IAutoGenerateID"/>
+    <element value="bika.lims.interfaces.IMultiCatalogBehavior"/>
     <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
+    <element value="senaite.archive.behaviors.archiveitem.IArchiveItemBehavior"/>
   </property>
 
   <!-- Action aliases -->
@@ -67,7 +69,7 @@
           icon_expr=""
           link_target=""
           url_expr="string:${object_url}"
-          visible="False">
+          visible="True">
     <permission value="View"/>
   </action>
 
