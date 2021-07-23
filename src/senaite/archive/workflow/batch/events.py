@@ -18,20 +18,10 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from senaite.archive.workflow import BaseGuardAdapter
-from senaite.archive.workflow import TransitionEventHandler
-from senaite.archive.workflow.worksheet import events
-from senaite.archive.workflow.worksheet import guards
+from senaite.archive.utils import archive_object
 
 
-def AfterTransitionEventHandler(worksheet, event): # noqa lowercase
-    """Actions to be done just after a transition for a worksheet takes place
+def after_archive(batch):
+    """ Event fired after transition "archive" is triggered
     """
-    TransitionEventHandler("after", worksheet, events, event)
-
-
-class GuardAdapter(BaseGuardAdapter):
-    """Adapter for Worksheet guards
-    """
-    def get_module(self):
-        return guards
+    archive_object(batch)

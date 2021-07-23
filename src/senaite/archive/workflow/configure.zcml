@@ -14,6 +14,12 @@
          Products.DCWorkflow.interfaces.IAfterTransitionEvent"
       handler=".worksheet.AfterTransitionEventHandler" />
 
+  <!-- After event handler for Batch -->
+  <subscriber
+      for="bika.lims.interfaces.IBatch
+         Products.DCWorkflow.interfaces.IAfterTransitionEvent"
+      handler=".batch.AfterTransitionEventHandler" />
+
   <!-- Guard handler for AnalysisRequest -->
   <adapter
       for="bika.lims.interfaces.IAnalysisRequest"
@@ -27,5 +33,12 @@
       provides="bika.lims.interfaces.IGuardAdapter"
       factory=".worksheet.GuardAdapter"
       name="senaite.archive.worksheet.guard" />
+
+  <!-- Guard handler for Batch -->
+  <adapter
+      for="bika.lims.interfaces.IBatch"
+      provides="bika.lims.interfaces.IGuardAdapter"
+      factory=".batch.GuardAdapter"
+      name="senaite.archive.batch.guard" />
 
 </configure>

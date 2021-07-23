@@ -25,7 +25,7 @@ from senaite.archive.workflow.analysisrequest import guards
 
 
 def AfterTransitionEventHandler(sample, event): # noqa lowercase
-    """Actions to be done just before a transition for a sample takes place
+    """Actions to be done just after a transition for a sample takes place
     """
     TransitionEventHandler("after", sample, events, event)
 

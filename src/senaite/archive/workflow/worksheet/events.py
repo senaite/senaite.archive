@@ -24,5 +24,4 @@ from senaite.archive.utils import archive_object
 def after_archive(worksheet):
     """ Event fired after transition "archive" is triggered
     """
-    # Archive first the samples assigned to this worksheet through Analyses
     archive_object(worksheet)

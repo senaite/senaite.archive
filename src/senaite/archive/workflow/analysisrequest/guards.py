@@ -19,7 +19,7 @@
 # Some rights reserved, see README and LICENSE.
 
 from senaite.archive import is_installed
-from senaite.archive.utils import get_back_references
+from senaite.archive.utils import get_archiving_dependents
 from senaite.archive.utils import is_outside_retention_period
 
 from bika.lims.interfaces import IAnalysisRequest
@@ -40,7 +40,7 @@ def guard_archive(sample):
         return False
 
     # All back references have to be archive-able too
-    for ref in get_back_references(sample):
+    for ref in get_archiving_dependents(sample):
         if IAnalysisRequest.providedBy(ref):
             if not isTransitionAllowed(ref, "archive"):
                 return False

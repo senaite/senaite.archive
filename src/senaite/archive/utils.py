@@ -30,10 +30,14 @@ from senaite.archive import logger
 from senaite.archive.config import PRODUCT_NAME
 from senaite.archive.interfaces import IForArchiving
 from zope.interface import alsoProvides
+from zope.interface import noLongerProvides
 
 from bika.lims import api
+from bika.lims.catalog import CATALOG_ANALYSIS_REQUEST_LISTING
 from bika.lims.exportimport.genericsetup.structure import exportObjects
 from bika.lims.interfaces import IAnalysisRequest
+from bika.lims.interfaces import IAuditable
+from bika.lims.interfaces import IBatch
 from bika.lims.workflow import doActionFor as do_action_for
 from bika.lims.workflow import isTransitionAllowed
 
@@ -59,7 +63,7 @@ def archive_old_objects(context):
     """Archives (and deletes) all archivable objects from the system that are
     older than the retention period
     """
-    query = {"portal_type": ["AnalysisRequest"]}
+    query = {"portal_type": ["Batch", "AnalysisRequest"]}
     for obj in api.search(query, UID_CATALOG):
         obj = api.get_object(obj)
         if can_archive(obj):
@@ -70,17 +74,19 @@ def archive_object(obj):
     """Archives an deletes an object, while creating a new lightweight object
     representing the former and only used for historical searches
     """
-    # Archive object's back references first. Won't be possible to delete the
-    # object otherwise
-    refs = get_back_references(obj)
-    map(archive_object, refs)
+    # Archive object dependents (back references) first. Won't be possible to
+    # delete the object otherwise
+    for dep in get_archiving_dependents(obj):
+        do_action_for(dep, "archive")
 
     # Mark the object and its children with IForArchiving interface, so the
     # generic setup export machinery does not dismiss them when exporting the
     # contents into XML files. See monkeys/genericsetup/can_export
+    # Also, remove the IAuditable so no record in auditlog catalog is created
     for ob in extract(obj):
         if can_archive(ob):
             alsoProvides(ob, IForArchiving)
+            noLongerProvides(ob, IAuditable)
 
     # Do a transaction savepoint
     transaction.savepoint(optimistic=True)
@@ -123,7 +129,9 @@ def get_summary(obj):
     return api.get_title(obj)
 
 
-def get_back_references(obj):
+def get_archiving_dependents(obj):
+    """Returns a list of objects that need to be archived before the obj
+    """
     refs = []
     if IAnalysisRequest.providedBy(obj):
         # Retests
@@ -136,6 +144,12 @@ def get_back_references(obj):
         # Descendants
         descendants = obj.getDescendants() or []
         refs.extend(descendants)
+
+    elif IBatch.providedBy(obj):
+        # Contained Samples
+        query = {"getBatchUID": api.get_uid(obj)}
+        samples = api.search(query, CATALOG_ANALYSIS_REQUEST_LISTING)
+        refs = map(api.get_object, samples)
 
     return filter(None, refs)
 

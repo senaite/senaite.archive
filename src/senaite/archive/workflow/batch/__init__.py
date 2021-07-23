@@ -20,18 +20,18 @@
 
 from senaite.archive.workflow import BaseGuardAdapter
 from senaite.archive.workflow import TransitionEventHandler
-from senaite.archive.workflow.worksheet import events
-from senaite.archive.workflow.worksheet import guards
+from senaite.archive.workflow.batch import events
+from senaite.archive.workflow.batch import guards
 
 
-def AfterTransitionEventHandler(worksheet, event): # noqa lowercase
-    """Actions to be done just after a transition for a worksheet takes place
+def AfterTransitionEventHandler(batch, event): # noqa lowercase
+    """Actions to be done just after a transition for a batch takes place
     """
-    TransitionEventHandler("after", worksheet, events, event)
+    TransitionEventHandler("after", batch, events, event)
 
 
 class GuardAdapter(BaseGuardAdapter):
-    """Adapter for Worksheet guards
+    """Adapter for Batch guards
     """
     def get_module(self):
         return guards

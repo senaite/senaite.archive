@@ -18,20 +18,25 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from senaite.archive.workflow import BaseGuardAdapter
-from senaite.archive.workflow import TransitionEventHandler
-from senaite.archive.workflow.worksheet import events
-from senaite.archive.workflow.worksheet import guards
+from senaite.archive import is_installed
+
+from bika.lims import api
+from bika.lims.catalog import CATALOG_ANALYSIS_REQUEST_LISTING
+from bika.lims.workflow import isTransitionAllowed
 
 
-def AfterTransitionEventHandler(worksheet, event): # noqa lowercase
-    """Actions to be done just after a transition for a worksheet takes place
+def guard_archive(batch):
+    """Returns true if all samples from the batch can be archived
     """
-    TransitionEventHandler("after", worksheet, events, event)
+    # Check if senaite.archive is properly installed
+    if not is_installed():
+        return False
 
+    # Get the Samples from the batch
+    query = {"getBatchUID": api.get_uid(batch)}
+    for sample in api.search(query, CATALOG_ANALYSIS_REQUEST_LISTING):
+        sample = api.get_object(sample)
+        if not isTransitionAllowed(sample, "archive"):
+            return False
 
-class GuardAdapter(BaseGuardAdapter):
-    """Adapter for Worksheet guards
-    """
-    def get_module(self):
-        return guards
+    return True

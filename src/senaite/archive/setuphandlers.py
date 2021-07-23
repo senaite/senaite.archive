@@ -18,6 +18,7 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+import copy
 import time
 import transaction
 from plone import api as ploneapi
@@ -95,6 +96,25 @@ WORKFLOWS_TO_UPDATE = {
                 "transitions": ["archive"]
             },
             "rejected": {
+                "transitions": ["archive"]
+            },
+        },
+        "transitions": {
+            "archive": {
+                "title": _("Archive"),
+                "new_state": "",
+                "guard": {
+                    "guard_permissions": permissions.TransitionArchive,
+                    "guard_roles": "",
+                    "guard_expr": "python:here.guard_handler('archive')",
+                }
+            },
+        }
+    },
+    "senaite_batch_workflow": {
+        "permissions": (),
+        "states": {
+            "*": {
                 "transitions": ["archive"]
             },
         },
@@ -214,6 +234,12 @@ def update_workflow_state(workflow, status_id, settings):
     logger.info("Updating workflow '{}', status: '{}' ..."
                 .format(workflow.id, status_id))
 
+    if status_id == "*":
+        # Update *all* statuses for the given workflow)
+        for sid in workflow.states.keys():
+            update_workflow_state(workflow, sid, settings)
+        return
+
     # Create the status (if does not exist yet)
     new_status = workflow.states.get(status_id)
     if not new_status:
@@ -225,7 +251,7 @@ def update_workflow_state(workflow, status_id, settings):
     new_status.description = settings.get("description", new_status.description)
 
     # Set transitions
-    trans = settings.get("transitions", [])
+    trans = copy.deepcopy(settings.get("transitions", []))
     if isinstance(trans, tuple):
         # Overwrite transitions
         new_status.transitions = trans
