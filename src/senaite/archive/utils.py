@@ -63,11 +63,13 @@ def archive_old_objects(context):
     """Archives (and deletes) all archivable objects from the system that are
     older than the retention period
     """
-    query = {"portal_type": ["Batch", "AnalysisRequest"]}
-    for obj in api.search(query, UID_CATALOG):
-        obj = api.get_object(obj)
-        if can_archive(obj):
-            do_action_for(obj, "archive")
+    portal_types = ["Batch", "AnalysisRequest", "Worksheet"]
+    for portal_type in portal_types:
+        query = {"portal_type": portal_type}
+        for obj in api.search(query, UID_CATALOG):
+            obj = api.get_object(obj)
+            if can_archive(obj):
+                do_action_for(obj, "archive")
 
 
 def archive_object(obj):
