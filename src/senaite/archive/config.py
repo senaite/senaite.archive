@@ -24,3 +24,6 @@ PROFILE_ID = "profile-{}:default".format(PRODUCT_NAME)
 UNINSTALL_ID = "profile-{}:uninstall".format(PRODUCT_NAME)
 
 PRODUCT_TYPES = ("ArchiveFolder", "ArchiveItem")
+
+# The task ID for archiving for when senaite.queue is installed
+QUEUE_TASK_ID = "{}.task_do_archive".format(PRODUCT_NAME)

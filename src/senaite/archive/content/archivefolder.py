@@ -27,3 +27,7 @@ from zope.interface import implementer
 class ArchiveFolder(Container):
     """Archive items folder
     """
+    # Catalogs where this type will be catalogued
+    # We need this folder to be catalogued in uid_catalog because the folder is
+    # used as the context for when senaite.queue is installed and enabled
+    _catalogs = ["uid_catalog", "portal_catalog"]

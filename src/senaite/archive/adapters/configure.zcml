@@ -8,4 +8,11 @@
            *"
       factory="bika.lims.exportimport.genericsetup.structure.ContentXMLAdapter" />
 
+  <!-- Adapter for archiving by means of senaite.queue -->
+  <adapter
+      name="senaite.archive.task_do_archive"
+      factory=".queue.QueuedDoArchiveTaskAdapter"
+      provides="senaite.queue.interfaces.IQueuedTaskAdapter"
+      for="senaite.archive.interfaces.IArchiveFolder" />
+
 </configure>

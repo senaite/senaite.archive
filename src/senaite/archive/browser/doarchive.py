@@ -21,7 +21,7 @@
 from datetime import datetime
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.archive import messageFactory as _
-from senaite.archive.utils import archive_old_objects
+from senaite.archive.utils import do_archive
 from senaite.archive.utils import get_retention_date_criteria
 from senaite.archive.utils import get_retention_period
 
@@ -55,7 +55,7 @@ class DoArchiveView(BrowserView):
         # Handle confirm
         if form_submitted and form_confirm:
             # Do the action here
-            archive_old_objects()
+            do_archive()
             message = _("Archiving of records has finished successfully")
             return self.redirect(message=message)
 

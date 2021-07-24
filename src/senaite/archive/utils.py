@@ -28,6 +28,7 @@ from Products.Archetypes.config import UID_CATALOG
 from Products.GenericSetup.context import DirectoryExportContext
 from senaite.archive import logger
 from senaite.archive.config import PRODUCT_NAME
+from senaite.archive.config import QUEUE_TASK_ID
 from senaite.archive.interfaces import IForArchiving
 from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
@@ -40,6 +41,14 @@ from bika.lims.interfaces import IAuditable
 from bika.lims.interfaces import IBatch
 from bika.lims.workflow import doActionFor as do_action_for
 from bika.lims.workflow import isTransitionAllowed
+
+try:
+    from senaite.queue.api import is_queue_ready
+    from senaite.queue.api import add_task
+except:
+    # Queue is not installed
+    is_queue_ready = None
+    add_task = None
 
 
 def can_archive(obj):
@@ -71,16 +80,67 @@ def is_archive_valid():
 
 
 def archive_old_objects(context=None):  # noqa context is required by genericsetup
-    """Archives (and deletes) all archivable objects from the system that are
-    older than the retention period
+    """Archives (and deletes) all archive-able objects from the system that are
+    older than the retention period. This function is used by the generic setup
     """
-    portal_types = ["Batch", "AnalysisRequest", "Worksheet"]
-    for portal_type in portal_types:
-        query = {"portal_type": portal_type}
-        for obj in api.search(query, UID_CATALOG):
-            obj = api.get_object(obj)
-            if can_archive(obj):
-                do_action_for(obj, "archive")
+    for obj in archivable_objects():
+        do_action_for(obj, "archive")
+
+
+def archivable_objects():
+    """Returns an enumerator with objects their type is suitable for archival
+    and they are outside of the retention period
+    """
+    # We sort by portal type so we are sure that Samples are processed first
+    portal_types = ["AnalysisRequest", "Batch", "Worksheet"]
+    query = {
+        "portal_type": portal_types,
+        "sort_on": "portal_type",
+        "sort_order": "ascending",
+    }
+    for obj in api.search(query, UID_CATALOG):
+        obj = api.get_object(obj)
+        if can_archive(obj):
+            yield obj
+
+
+def do_archive():
+    """Archives (and deletes) all archivable objects from the system that are
+    older than the retention period, but may use the queue if active. If the
+    queue is not active or not installed, all objects are archived in a single
+    transaction
+    """
+    def is_queue_ok():
+        try:
+            return is_queue_ready()
+        except:
+            return False
+
+    if is_queue_ok():
+        # Archive all objects by means of the queue
+        queue_do_archive()
+    else:
+        # Archive all objects in a single shot
+        archive_old_objects()
+
+
+def queue_do_archive(chunk_size=10, priority=50):
+    """Adds a queued task (if senaite.queue installed and active) in charge of
+    archiving the non-active records that are outside of the retention period
+    """
+    uids = []
+    for obj in archivable_objects():
+        uids.append(api.get_uid(obj))
+        if len(uids) >= chunk_size:
+            break
+
+    kwargs = {
+        "uids": uids,
+        "priority": priority,
+        "chunk_size": chunk_size,
+    }
+    archive_folder = api.get_portal().archive
+    add_task(QUEUE_TASK_ID, archive_folder, **kwargs)
 
 
 def archive_object(obj):

@@ -325,7 +325,13 @@ def add_portal_folders(portal):
     """
     logger.info("Adding portal folders ...")
     for folder_id, folder_name, portal_type in PORTAL_FOLDERS:
-        add_obj(portal, folder_id, folder_name, portal_type)
+        obj = add_obj(portal, folder_id, folder_name, portal_type)
+        obj_url = api.get_path(obj)
+        cat_ids = getattr(obj, "_catalogs", [])
+        for cat_id in cat_ids:
+            cat = api.get_tool(cat_id)
+            cat.catalog_object(obj, obj_url)
+
     logger.info("Adding portal folders [DONE]")
 
 
@@ -370,11 +376,13 @@ def add_obj(container, obj_id, obj_name, obj_type):
     ti.allowed_content_types = allowed_types + (obj_type, )
 
     # Create the object
-    obj = container.invokeFactory(obj_type, obj_id, title=obj_name)
+    container.invokeFactory(obj_type, obj_id, title=obj_name)
+    obj = container.get(obj_id)
     show_in_nav(obj)
 
     # reset the allowed content types
     ti.allowed_content_types = allowed_types
+    return obj
 
 
 def setup_catalogs(portal):
