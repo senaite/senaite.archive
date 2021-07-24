@@ -1,7 +1,7 @@
 License
 =======
 
-**SENAITE.ARCHIVE** Copyright (C) 2020 RIDING BYTES & NARALABS
+**SENAITE.ARCHIVE** Copyright (C) 2021 RIDING BYTES & NARALABS
 
 `SENAITE.ARCHIVE`_ is available under the terms of the `GNU General Public
 License, version 2`_ as published by the `Free Software Foundation`_.

@@ -21,6 +21,13 @@ afterwards:
 With this configuration, buildout will download and install the latest published
 release of `senaite.archive from Pypi`_.
 
+Once buildout finishes, start the instance, login with a user with "Site
+Administrator" privileges and activate the add-on:
+
+http://localhost:8080/senaite/prefs_install_products_form
+
+.. note:: It assumes you have a SENAITE instance listening to port 8080
+
 .. note:: For high-demand instances, is strongly recommended to use this add-on
    together with `senaite.queue`_. senaite.archive delegates the archiving of
    records to senaite.queue when installed and active. Otherwise, the archiving
