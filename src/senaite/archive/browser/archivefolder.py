@@ -18,13 +18,17 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from senaite.archive.catalog import CATALOG_ARCHIVE
-from senaite.core.listing import ListingView
-from bika.lims import api
-from senaite.archive import messageFactory as _
 import collections
+from datetime import datetime
+from DateTime import DateTime
 from plone.memoize import view
+from senaite.archive import messageFactory as _
+from senaite.archive import permissions
+from senaite.archive.catalog import CATALOG_ARCHIVE
+from senaite.archive.utils import is_archive_valid
+from senaite.core.listing import ListingView
 
+from bika.lims import api
 from bika.lims.utils import get_link
 
 
@@ -46,11 +50,18 @@ class ArchiveFolderView(ListingView):
 
         self.contentFilter = {
             "portal_type": "ArchiveItem",
-            "sort_on": "item_modified",
-            "sort_order": "descending",
+            "sort_on": "item_created",
+            "sort_order": "ascending",
         }
 
         self.context_actions = {}
+        if is_archive_valid():
+            self.context_actions = {
+                _("Archive old records"): {
+                    "permission": permissions.AddArchiveItem,
+                    "url": "{}/do_archive".format(api.get_url(self.context)),
+                    "icon": "++resource++bika.lims.images/add.png"}
+            }
 
         self.columns = collections.OrderedDict((
             ("item_id", {
@@ -89,6 +100,52 @@ class ArchiveFolderView(ListingView):
         """
         # Don't allow any context actions
         self.request.set("disable_border", 1)
+
+        # Add as many review states as years for archived records
+        for year in self.get_years_range():
+            self.review_states.append({
+                "id": str(year),
+                "title": str(year),
+                "contentFilter": {"item_created": self.get_year_query(year)},
+                "columns": self.columns.keys()
+            })
+
+    def get_year_query(self, year):
+        first_day = DateTime(year, 1, 1).earliestTime()
+        last_day = DateTime(year, 12, 31).latestTime()
+        return {
+            "query": [first_day, last_day],
+            "range": "min:max",
+        }
+
+    @view.memoize
+    def get_years_range(self):
+        """Returns a tuple with the range of years for which there are archived
+        records. Returns None if there are no records
+        """
+        def get_year(obj):
+            if isinstance(obj, DateTime):
+                return obj.year()
+            return obj.year
+
+        query = {
+            "portal_type": "ArchiveItem",
+            "sort_on": "item_created",
+            "sort_order": "ascending",
+            "sort_limit": 1,
+        }
+        brains = api.search(query, CATALOG_ARCHIVE)
+        if not brains:
+            return []
+
+        # Oldest year
+        min_year = get_year(brains[0].item_created)
+
+        # Newest year
+        query.update({"sort_order": "descending"})
+        brains = api.search(query, CATALOG_ARCHIVE)
+        max_year = get_year(brains[0].item_created)
+        return range(min_year, max_year+1)
 
     @view.memoize
     def get_archive_url(self):

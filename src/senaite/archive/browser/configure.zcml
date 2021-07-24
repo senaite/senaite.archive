@@ -29,10 +29,18 @@
 
   <!-- Archive folder view (for historical searches) -->
   <browser:page
-      for="senaite.archive.interfaces.IArchiveFolder"
       name="view"
+      for="senaite.archive.interfaces.IArchiveFolder"
       class=".archivefolder.ArchiveFolderView"
       permission="senaite.core.permissions.ManageBika"
+      layer="senaite.archive.interfaces.ISenaiteArchiveLayer" />
+
+  <!-- Do Archive form view -->
+  <browser:page
+      name="do_archive"
+      for="senaite.archive.interfaces.IArchiveFolder"
+      class=".doarchive.DoArchiveView"
+      permission="senaite.archive.permissions.AddArchiveItem"
       layer="senaite.archive.interfaces.ISenaiteArchiveLayer" />
 
 </configure>

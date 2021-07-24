@@ -19,16 +19,17 @@
 # Some rights reserved, see README and LICENSE.
 
 import logging
-from Products.Archetypes.atapi import listTypes
-from Products.Archetypes.atapi import process_types
-from Products.CMFCore.permissions import AddPortalContent
-from Products.CMFCore.utils import ContentInit
+from AccessControl.Permission import addPermission
+from AccessControl.SecurityInfo import ModuleSecurityInfo
+from senaite.archive import permissions
 from senaite.archive.config import PRODUCT_NAME
+from senaite.archive.config import PRODUCT_TYPES
 from senaite.archive.interfaces import ISenaiteArchiveLayer
 from zope.i18nmessageid import MessageFactory
 
 from bika.lims import api
 
+security = ModuleSecurityInfo(PRODUCT_NAME)
 messageFactory = MessageFactory(PRODUCT_NAME)
 logger = logging.getLogger(PRODUCT_NAME)
 
@@ -57,16 +58,9 @@ def initialize(context):
     """Initializer called when used as a Zope 2 product."""
     logger.info("*** Initializing SENAITE ARCHIVE Customization package ***")
 
-    types = listTypes(PRODUCT_NAME)
-    content_types, constructors, ftis = process_types(types, PRODUCT_NAME)
-
     # Set add permissions
-    all_types = zip(content_types, constructors)
-    for a_type, constructor in all_types:
-        kind = "%s: Add %s" % (PRODUCT_NAME, a_type.portal_type)
-        ContentInit(kind,
-                    content_types=(a_type,),
-                    permission=AddPortalContent,
-                    extra_constructors=(constructor, ),
-                    fti=ftis,
-                    ).initialize(context)
+    for typename in PRODUCT_TYPES:
+        permission_id = "Add" + typename
+        permission_name = getattr(permissions, permission_id)
+        security.declarePublic(permission_id)
+        addPermission(permission_name, default_roles=("Manager", ))

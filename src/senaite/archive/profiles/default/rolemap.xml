@@ -2,6 +2,15 @@
 <rolemap>
   <permissions>
 
+    <!-- Add permissions -->
+    <permission name="senaite.archive: Add ArchiveFolder" acquire="False">
+      <role name="Manager"/>
+    </permission>
+    <permission name="senaite.archive: Add ArchiveItem" acquire="False">
+      <role name="LabManager"/>
+      <role name="Manager"/>
+    </permission>
+
     <!-- Transition permissions -->
     <permission name="senaite.archive: Transition: Archive" acquire="False">
       <role name="LabManager"/>

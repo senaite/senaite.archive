@@ -59,7 +59,18 @@ def can_archive(obj):
     return True
 
 
-def archive_old_objects(context):
+def is_archive_valid():
+    """Returns whether the configuration of the archive is valid
+    """
+    # A valid base directory must be set (this field is required, but comes
+    # empty the first time the add-on is installed)
+    base_path = get_archive_base_path()
+    if not base_path:
+        return False
+    return True
+
+
+def archive_old_objects(context=None):  # noqa context is required by genericsetup
     """Archives (and deletes) all archivable objects from the system that are
     older than the retention period
     """

@@ -22,3 +22,5 @@ PRODUCT_NAME = "senaite.archive"
 
 PROFILE_ID = "profile-{}:default".format(PRODUCT_NAME)
 UNINSTALL_ID = "profile-{}:uninstall".format(PRODUCT_NAME)
+
+PRODUCT_TYPES = ("ArchiveFolder", "ArchiveItem")

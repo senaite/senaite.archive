@@ -20,7 +20,8 @@
 
 from plone.app.layout.viewlets import ViewletBase
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from senaite.archive.utils import get_archive_base_path
+from senaite.archive import check_installed
+from senaite.archive.utils import is_archive_valid
 
 from bika.lims import api
 
@@ -30,15 +31,11 @@ class ArchiveConfigurationViewlet(ViewletBase):
     """
     index = ViewPageTemplateFile("templates/configuration_viewlet.pt")
 
+    @check_installed(False)
     def is_visible(self):
         """Returns whether the viewlet must be visible or not
         """
-        # A valid base directory must be set (this field is required, but comes
-        # empty the first time the add-on is installed)
-        base_path = get_archive_base_path()
-        if not base_path:
-            return True
-        return False
+        return not is_archive_valid()
 
     def get_control_panel_url(self):
         """Returns the url to Archive's control panel

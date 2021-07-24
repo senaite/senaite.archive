@@ -18,4 +18,6 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+AddArchiveFolder = "senaite.archive: Add ArchiveFolder"
+AddArchiveItem = "senaite.archive: Add ArchiveItem"
 TransitionArchive = "senaite.archive: Transition: Archive"

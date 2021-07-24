@@ -2,6 +2,10 @@
     xmlns="http://namespaces.zope.org/zope"
     i18n_domain="senaite.archive">
 
+  <!-- Content permissions -->
+  <permission id="senaite.archive.permissions.AddArchiveFolder" title="senaite.archive: Add ArchiveFolder"/>
+  <permission id="senaite.archive.permissions.AddArchiveItem" title="senaite.archive: Add ArchiveItem"/>
+
   <!-- Transition permissions -->
   <permission id="senaite.archive.permissions.TransitionArchive" title="senaite.archive: Transition: Archive"/>
 

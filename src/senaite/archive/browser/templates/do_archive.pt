@@ -1,0 +1,71 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      metal:use-macro="here/main_template/macros/master"
+      i18n:domain="senaite.archive">
+  <body>
+
+    <!-- Title -->
+    <metal:title fill-slot="content-title">
+      <h1 i18n:translate="">
+        Archiving of old records
+      </h1>
+    </metal:title>
+
+    <!-- Description -->
+    <metal:description fill-slot="content-description">
+      <div id="portal-alert">
+        <div class="portal-alert-item alert alert-warning"
+          tal:define="earliest_year python:view.get_earliest_year();
+                      date_criteria python:view.get_date_criteria()">
+          <p>
+            <strong i18n:translate="">Warning</strong>
+          </p>
+          <p i18n:translate="">
+            This action cannot be undone, archived records cannot be recovered.
+          </p>
+          <p>
+            <strong tal:condition="python: date_criteria == 'modified'"
+                    i18n:translate="">Are you sure you want to archive all non active records that were last modified before</strong>
+            <strong tal:condition="python: date_criteria == 'created'"
+                    i18n:translate="">Are you sure you want to archive all non active records that were created before</strong>
+            <strong tal:content="earliest_year"/>?
+          </p>
+        </div>
+      </div>
+    </metal:description>
+
+    <!-- Content -->
+    <metal:core fill-slot="content-core">
+      <div class="row">
+        <div class="col-sm-12">
+          <form class="form"
+                id="do_archive"
+                name="do_archive"
+                method="POST">
+
+            <!-- Hidden Fields -->
+            <input type="hidden" name="submitted" value="1"/>
+            <input tal:replace="structure context/@@authenticator/authenticator"/>
+
+            <!-- Form Controls -->
+            <div>
+              <!-- Cancel -->
+              <input class="btn btn-default btn-sm"
+                     type="submit"
+                     name="button_cancel"
+                     i18n:attributes="value"
+                     value="Cancel"/>
+              <!-- Confirm -->
+              <input class="btn btn-success btn-sm"
+                     type="submit"
+                     name="button_confirm"
+                     i18n:attributes="value"
+                     value="Confirm"/>
+            </div>
+          </form>
+        </div>
+      </div>
+    </metal:core>
+  </body>
+</html>
