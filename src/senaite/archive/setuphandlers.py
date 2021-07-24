@@ -44,6 +44,7 @@ INDEXES = [
     (CATALOG_ARCHIVE, "item_type", "FieldIndex"),
     (CATALOG_ARCHIVE, "item_created", "DateIndex"),
     (CATALOG_ARCHIVE, "item_modified", "DateIndex"),
+    (CATALOG_ARCHIVE, "listing_searchable_text", "TextIndexNG3"),
 ]
 
 COLUMNS = [

@@ -1,0 +1,8 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="senaite.archive">
+
+  <!-- Index for searches in listings of ArchiveItems -->
+  <adapter name="listing_searchable_text" factory=".indexers.listing_searchable_text"/>
+
+</configure>

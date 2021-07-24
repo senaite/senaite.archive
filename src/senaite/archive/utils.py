@@ -34,11 +34,15 @@ from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
 
 from bika.lims import api
+from bika.lims.catalog import BIKA_CATALOG
 from bika.lims.catalog import CATALOG_ANALYSIS_REQUEST_LISTING
+from bika.lims.catalog import CATALOG_WORKSHEET_LISTING
+from bika.lims.catalog.indexers import generic_listing_searchable_text
 from bika.lims.exportimport.genericsetup.structure import exportObjects
 from bika.lims.interfaces import IAnalysisRequest
 from bika.lims.interfaces import IAuditable
 from bika.lims.interfaces import IBatch
+from bika.lims.interfaces import IWorksheet
 from bika.lims.workflow import doActionFor as do_action_for
 from bika.lims.workflow import isTransitionAllowed
 
@@ -92,16 +96,13 @@ def archivable_objects():
     and they are outside of the retention period
     """
     # We sort by portal type so we are sure that Samples are processed first
-    portal_types = ["AnalysisRequest", "Batch", "Worksheet"]
-    query = {
-        "portal_type": portal_types,
-        "sort_on": "portal_type",
-        "sort_order": "ascending",
-    }
-    for obj in api.search(query, UID_CATALOG):
-        obj = api.get_object(obj)
-        if can_archive(obj):
-            yield obj
+    portal_types = ["Worksheet", "Batch", "AnalysisRequest"]
+    for portal_type in portal_types:
+        query = {"portal_type": portal_type}
+        for obj in api.search(query, UID_CATALOG):
+            obj = api.get_object(obj)
+            if can_archive(obj):
+                yield obj
 
 
 def do_archive():
@@ -198,8 +199,33 @@ def create_archive_item(obj):
 def get_summary(obj):
     """Returns a summary of the object to be kept for furhter reference
     """
-    # TODO portal_type-specific
-    return api.get_title(obj)
+    # TODO This is really ugly. Use an adapter instead
+    extract_text = generic_listing_searchable_text
+    if IAnalysisRequest.providedBy(obj):
+        return extract_text(obj, CATALOG_ANALYSIS_REQUEST_LISTING)
+
+    elif IBatch.providedBy(obj):
+        batch_info = extract_text(obj, BIKA_CATALOG)
+        query = {
+            "portal_type": "AnalysisRequest",
+            "getBatchUID": api.get_uid(obj)
+        }
+        samples = api.search(query, CATALOG_ANALYSIS_REQUEST_LISTING)
+        sample_ids = " ".join(map(api.get_id, samples))
+        return " ".join([batch_info, sample_ids])
+
+    elif IWorksheet.providedBy(obj):
+        ws_info = extract_text(obj, CATALOG_WORKSHEET_LISTING)
+        values = []
+        for an in obj.getAnalyses():
+            sample_id = an.getRequestID()
+            keyword = an.getKeyword()
+            status = api.get_review_status(an)
+            values.append("{}:{} ({})".format(sample_id, keyword, status))
+        values = " ".join(values)
+        return " ".join([ws_info, values])
+
+    return extract_text(obj, "portal_catalog")
 
 
 def get_archiving_dependents(obj):
