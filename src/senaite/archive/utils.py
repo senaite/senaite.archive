@@ -172,13 +172,13 @@ def archive_object(obj):
 
     # Create the ArchiveItem object, a DT lightweight object with it's own
     # catalog , used for historical searches
-    create_archive_item(obj)
+    create_archive_item(obj, "/{}".format(archive_path))
 
     # Definitely remove (and uncatalog) the object
     delete(obj)
 
 
-def create_archive_item(obj):
+def create_archive_item(obj, archive_path):
     """Creates an archive item that represents the object passed-in
     """
     # Extract the data from the object with the proper adapter
@@ -212,6 +212,7 @@ def create_archive_item(obj):
         item_created=api.get_creation_date(obj),
         item_modified=get_last_modification_date(obj),
         item_data=html,
+        archive_path=archive_path,
         search_text=search_text,
         exclude_from_nav=True
     )

@@ -49,6 +49,11 @@ class IArchiveItemBehavior(model.Schema):
         required=True,
     )
 
+    archive_path = schema.TextLine(
+        title=_(u"Archive relative path"),
+        required=True,
+    )
+
     directives.omitted("item_created")
     item_created = schema.Datetime(
         title=_(u"Item creation date"),
@@ -104,6 +109,14 @@ class ArchiveItem(object):
         self.context.item_path = value
 
     item_path = property(_get_item_path, _set_item_path)
+
+    def _get_archive_path(self):
+        return getattr(self.context, "archive_path")
+
+    def _set_archive_path(self, value):
+        self.context.archive_path = value
+
+    archive_path = property(_get_archive_path, _set_archive_path)
 
     def _get_item_created(self):
         return getattr(self.context, "item_created")
