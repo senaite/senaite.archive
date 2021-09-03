@@ -25,4 +25,4 @@ from senaite.archive.interfaces import IArchiveItem
 
 @indexer(IArchiveItem, IArchiveCatalog)
 def listing_searchable_text(instance):
-    return instance.item_summary
+    return instance.search_text

@@ -24,6 +24,31 @@
   <include package=".monkeys"/>
   <include package=".workflow"/>
 
+  <!-- Default data providers
+  These are used for the extraction of data from objects to be archived. The
+  extracted data is stored as a dict in archive item counterpart
+  -->
+  <adapter
+      for="Products.ATContentTypes.interfaces.IATContentType
+           zope.publisher.interfaces.browser.IBrowserRequest"
+      factory=".dataproviders.ArchiveArchetypesDataProvider"/>
+  <adapter
+      for="plone.dexterity.interfaces.IDexterityContent
+           zope.publisher.interfaces.browser.IBrowserRequest"
+      factory=".dataproviders.ArchiveDexterityDataProvider"/>
+  <adapter
+      for="bika.lims.interfaces.IAnalysisRequest
+           zope.publisher.interfaces.browser.IBrowserRequest"
+      factory=".dataproviders.ArchiveAnalysisRequestDataProvider"/>
+  <adapter
+      for="bika.lims.interfaces.IBatch
+           zope.publisher.interfaces.browser.IBrowserRequest"
+      factory=".dataproviders.ArchiveBatchDataProvider"/>
+  <adapter
+      for="bika.lims.interfaces.IWorksheet
+           zope.publisher.interfaces.browser.IBrowserRequest"
+      factory=".dataproviders.ArchiveWorksheetDataProvider"/>
+
   <!-- Default profile -->
   <genericsetup:registerProfile
       name="default"

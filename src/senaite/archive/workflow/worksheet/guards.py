@@ -19,22 +19,10 @@
 # Some rights reserved, see README and LICENSE.
 
 from senaite.archive import is_installed
+from senaite.archive.utils import get_samples
 
 from bika.lims import api
-from bika.lims.catalog import CATALOG_ANALYSIS_REQUEST_LISTING
 from bika.lims.workflow import isTransitionAllowed
-
-
-def get_samples(worksheet):
-    """Returns the samples from the analyses assigned to the worksheet
-    """
-    uids = map(lambda l: l.get("container_uid"), worksheet.getLayout())
-    uids = filter(None, uids)
-    if not uids:
-        return []
-
-    query = {"UID": uids}
-    return api.search(query, CATALOG_ANALYSIS_REQUEST_LISTING)
 
 
 def guard_archive(worksheet):

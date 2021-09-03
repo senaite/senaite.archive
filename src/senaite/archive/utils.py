@@ -24,20 +24,20 @@ import transaction
 from Acquisition import aq_base
 from datetime import datetime
 from DateTime import DateTime
+from plone.app.textfield import RichTextValue
 from Products.Archetypes.config import UID_CATALOG
 from Products.GenericSetup.context import DirectoryExportContext
 from senaite.archive import logger
 from senaite.archive.config import PRODUCT_NAME
 from senaite.archive.config import QUEUE_TASK_ID
+from senaite.archive.interfaces import IArchiveDataProvider
 from senaite.archive.interfaces import IForArchiving
+from zope.component import getMultiAdapter
 from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
 
 from bika.lims import api
-from bika.lims.catalog import BIKA_CATALOG
 from bika.lims.catalog import CATALOG_ANALYSIS_REQUEST_LISTING
-from bika.lims.catalog import CATALOG_WORKSHEET_LISTING
-from bika.lims.catalog.indexers import generic_listing_searchable_text
 from bika.lims.exportimport.genericsetup.structure import exportObjects
 from bika.lims.interfaces import IAnalysisRequest
 from bika.lims.interfaces import IAuditable
@@ -181,6 +181,28 @@ def archive_object(obj):
 def create_archive_item(obj):
     """Creates an archive item that represents the object passed-in
     """
+    # Extract the data from the object with the proper adapter
+    request = api.get_request()
+    provider = getMultiAdapter((obj, request), IArchiveDataProvider)
+    item_data = provider.to_dict()
+
+    # Exclude those key-values that are directly added to the item
+    exclude = ["id", "uid", "path", "portal_type"]
+
+    # Transform item_data to HTML-like
+    html = []
+    keys = sorted(item_data.keys())
+    keys = filter(lambda k: k not in exclude, keys)
+    for key in keys:
+        val = item_data.get(key)
+        html.append("<li><strong>{}</strong>: {}</li>".format(key, val))
+    html = "".join(html)
+    html = "<ul>{}</ul>".format(html)
+    html = RichTextValue(html, "text/html", "text/html")
+
+    # Extract the text to allow searches by
+    search_text = provider.searchable_text()
+
     # Giving the field values on creation saves a reindex after edition
     field_values = dict(
         title=api.get_title(obj),
@@ -189,43 +211,12 @@ def create_archive_item(obj):
         item_type=api.get_portal_type(obj),
         item_created=api.get_creation_date(obj),
         item_modified=get_last_modification_date(obj),
-        item_summary=get_summary(obj),
+        item_data=html,
+        search_text=search_text,
         exclude_from_nav=True
     )
     archive = api.get_portal().archive
     return api.create(archive, "ArchiveItem", **field_values)
-
-
-def get_summary(obj):
-    """Returns a summary of the object to be kept for furhter reference
-    """
-    # TODO This is really ugly. Use an adapter instead
-    extract_text = generic_listing_searchable_text
-    if IAnalysisRequest.providedBy(obj):
-        return extract_text(obj, CATALOG_ANALYSIS_REQUEST_LISTING)
-
-    elif IBatch.providedBy(obj):
-        batch_info = extract_text(obj, BIKA_CATALOG)
-        query = {
-            "portal_type": "AnalysisRequest",
-            "getBatchUID": api.get_uid(obj)
-        }
-        samples = api.search(query, CATALOG_ANALYSIS_REQUEST_LISTING)
-        sample_ids = " ".join(map(api.get_id, samples))
-        return " ".join([batch_info, sample_ids])
-
-    elif IWorksheet.providedBy(obj):
-        ws_info = extract_text(obj, CATALOG_WORKSHEET_LISTING)
-        values = []
-        for an in obj.getAnalyses():
-            sample_id = an.getRequestID()
-            keyword = an.getKeyword()
-            status = api.get_review_status(an)
-            values.append("{}:{} ({})".format(sample_id, keyword, status))
-        values = " ".join(values)
-        return " ".join([ws_info, values])
-
-    return extract_text(obj, "portal_catalog")
 
 
 def get_archiving_dependents(obj):
@@ -244,11 +235,9 @@ def get_archiving_dependents(obj):
         descendants = obj.getDescendants() or []
         refs.extend(descendants)
 
-    elif IBatch.providedBy(obj):
-        # Contained Samples
-        query = {"getBatchUID": api.get_uid(obj)}
-        samples = api.search(query, CATALOG_ANALYSIS_REQUEST_LISTING)
-        refs = map(api.get_object, samples)
+    else:
+        # Extract the samples from Worksheet, Batch
+        refs = get_samples(obj)
 
     return filter(None, refs)
 
@@ -376,6 +365,28 @@ def to_field_datetime(value):
         value = None
 
     return value
+
+
+def get_samples(obj):
+    """Returns the samples assigned to the obj passed-in
+    """
+    samples = []
+    if IBatch.providedBy(obj):
+        # Contained Samples
+        query = {"getBatchUID": api.get_uid(obj)}
+        samples = api.search(query, CATALOG_ANALYSIS_REQUEST_LISTING)
+        samples = map(api.get_object, samples)
+
+    elif IWorksheet.providedBy(obj):
+        # Samples assigned to this worksheet through its analyses
+        uids = map(lambda l: l.get("container_uid"), obj.getLayout())
+        uids = filter(None, uids)
+        if uids:
+            query = {"UID": uids}
+            samples = api.search(query, CATALOG_ANALYSIS_REQUEST_LISTING)
+            samples = map(api.get_object, samples)
+
+    return samples
 
 
 class ArchiveDirectoryExportContext(DirectoryExportContext):

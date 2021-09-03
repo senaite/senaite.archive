@@ -18,6 +18,7 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from plone.app.textfield import RichText
 from plone.autoform import directives
 from plone.autoform.interfaces import IFormFieldProvider
 from plone.dexterity.interfaces import IDexterityContent
@@ -60,7 +61,13 @@ class IArchiveItemBehavior(model.Schema):
         required=True,
     )
 
-    item_summary = schema.Text(
+    directives.omitted("search_text")
+    search_text = schema.Text(
+        title=_(u"Searchable text"),
+        required=False,
+    )
+
+    item_data = RichText(
         title=_(u"Item summary"),
         required=False,
     )
@@ -116,10 +123,18 @@ class ArchiveItem(object):
 
     item_modified = property(_get_item_modified, _set_item_modified)
 
-    def _get_item_summary(self):
-        return getattr(self.context, "item_summary")
+    def _get_search_text(self):
+        return getattr(self.context, "search_text")
 
-    def _set_item_summary(self, value):
-        self.context.item_summary = value
+    def _set_search_text(self, value):
+        self.context.search_text = value
 
-    item_summary = property(_get_item_summary, _set_item_summary)
+    search_text = property(_get_search_text, _set_search_text)
+
+    def _get_item_data(self):
+        return getattr(self.context, "item_data")
+
+    def _set_item_data(self, value):
+        self.context.item_data = value
+
+    item_data = property(_get_item_data, _set_item_data)

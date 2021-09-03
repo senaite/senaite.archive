@@ -52,3 +52,20 @@ class IArchiveItem(IHideActionsMenu, IDoNotSupportSnapshots):
 class IArchiveCatalog(Interface):
     """Archive catalog interface
     """
+
+
+class IArchiveDataProvider(Interface):
+    """Interface for items to be archived
+    """
+
+    def to_dict(self):
+        """Returns the dict representation of the object
+        """
+
+    def searchable_text(self):
+        """Returns a text with the words the item can be searched by
+        """
+
+    def __call__(self):
+        """Returns the dict representation of the object
+        """
