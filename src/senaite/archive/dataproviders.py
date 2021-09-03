@@ -75,8 +75,9 @@ class ArchiveBaseDataProvider(object):
         values = filter(None, values)
         return " ".join(values)
 
-    def get_iso_date(self, field_name):
-        date_val = api.safe_getattr(self.context, field_name, default=None)
+    def get_iso_date(self, field_name, obj=None):
+        obj = obj or self.context
+        date_val = api.safe_getattr(obj, field_name, default=None)
         date_val = to_iso_date(date_val, default="")
         return date_val
 
@@ -143,6 +144,7 @@ class ArchiveAnalysisRequestDataProvider(ArchiveBaseDataProvider):
             submitters = self.get_submitters()
             analyses = self.get_analyses()
             batch_id = self.context.getBatchID()
+            worksheets = self.get_worksheets()
             data.update({
                 "Sample type": sample_type and api.get_title(sample_type) or "",
                 "Client": client and api.get_title(client) or "",
@@ -153,6 +155,7 @@ class ArchiveAnalysisRequestDataProvider(ArchiveBaseDataProvider):
                 "Submitted by": submitters,
                 "Analyses": analyses,
                 "Batch": batch_id or "",
+                "Worksheets": worksheets,
             })
             self._data_dict = data
         return copy.deepcopy(self._data_dict)
@@ -174,6 +177,14 @@ class ArchiveAnalysisRequestDataProvider(ArchiveBaseDataProvider):
             unit = analysis.getUnit() or ""
             output.append("{}: {} {}".format(keyword, result, unit))
         return "; ".join(output)
+
+    def get_worksheets(self):
+        output = []
+        for analysis in self.context.getAnalyses(full_objects=True):
+            worksheet = analysis.getWorksheet()
+            if worksheet:
+                output.append(api.get_id(worksheet))
+        return " ".join(output)
 
     def get_verifiers(self):
         verifiers = self.context.getVerifiersIDs() or []
