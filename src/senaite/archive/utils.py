@@ -91,7 +91,7 @@ def archive_old_objects(context=None):  # noqa context is required by genericset
         do_action_for(obj, "archive")
 
 
-def archivable_objects():
+def archivable_objects(limit=-1):
     """Returns an enumerator with objects their type is suitable for archival
     and they are outside of the retention period
     """
@@ -99,6 +99,9 @@ def archivable_objects():
     portal_types = ["AnalysisRequest", "Batch", "Worksheet"]
     for portal_type in portal_types:
         query = {"portal_type": portal_type}
+        if limit > 0:
+            query.update({"sort_limit": limit})
+
         for obj in api.search(query, UID_CATALOG):
             obj = api.get_object(obj)
             if can_archive(obj):
@@ -125,16 +128,12 @@ def do_archive():
         archive_old_objects()
 
 
-def queue_do_archive(chunk_size=5, priority=50):
+def queue_do_archive(chunk_size=1, priority=50):
     """Adds a queued task (if senaite.queue installed and active) in charge of
     archiving the non-active records that are outside of the retention period
     """
-    uids = []
-    for obj in archivable_objects():
-        uids.append(api.get_uid(obj))
-        if len(uids) >= chunk_size:
-            break
-
+    objects = archivable_objects(limit=chunk_size)
+    uids = map(api.get_uid, objects)
     kwargs = {
         "uids": uids,
         "priority": priority,
