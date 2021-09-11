@@ -162,7 +162,7 @@ def archive_object(obj):
             noLongerProvides(ob, IAuditable)
 
     # Do a transaction savepoint
-    transaction.savepoint(optimistic=True)
+    #transaction.savepoint(optimistic=True)
 
     # Export object to the Archive's path in filesystem
     archive_path = get_archive_relative_path(obj)
