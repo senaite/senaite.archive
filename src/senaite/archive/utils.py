@@ -96,7 +96,7 @@ def archivable_objects():
     and they are outside of the retention period
     """
     # We sort by portal type so we are sure that Samples are processed first
-    portal_types = ["Worksheet", "Batch", "AnalysisRequest"]
+    portal_types = ["AnalysisRequest", "Batch", "Worksheet"]
     for portal_type in portal_types:
         query = {"portal_type": portal_type}
         for obj in api.search(query, UID_CATALOG):
