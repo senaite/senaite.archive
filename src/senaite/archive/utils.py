@@ -96,15 +96,18 @@ def archivable_objects(limit=-1):
     and they are outside of the retention period
     """
     # We sort by portal type so we are sure that Samples are processed first
+    num_objs = 0
     portal_types = ["AnalysisRequest", "Batch", "Worksheet"]
     for portal_type in portal_types:
+        if 0 < limit <= num_objs:
+            break
         query = {"portal_type": portal_type}
-        if limit > 0:
-            query.update({"sort_limit": limit})
-
         for obj in api.search(query, UID_CATALOG):
+            if 0 < limit <= num_objs:
+                break
             obj = api.get_object(obj)
             if can_archive(obj):
+                num_objs += 1
                 yield obj
 
 
