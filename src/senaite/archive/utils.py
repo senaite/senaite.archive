@@ -136,6 +136,8 @@ def queue_do_archive(chunk_size=1, priority=50):
     archiving the non-active records that are outside of the retention period
     """
     objects = archivable_objects(limit=chunk_size)
+    if not objects:
+        return
     uids = map(api.get_uid, objects)
     kwargs = {
         "uids": uids,
