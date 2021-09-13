@@ -149,7 +149,7 @@ def do_archive():
         archive_old_objects()
 
 
-def queue_do_archive(chunk_size=100, priority=50):
+def queue_do_archive(chunk_size=1, priority=50):
     """Adds a queued task (if senaite.queue installed and active) in charge of
     archiving the non-active records that are outside of the retention period
     """

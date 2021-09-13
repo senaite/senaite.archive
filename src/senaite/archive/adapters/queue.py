@@ -18,10 +18,8 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from senaite.archive.config import QUEUE_TASK_ID
 from senaite.archive.interfaces import IArchiveFolder
 from senaite.archive.utils import queue_do_archive
-from senaite.queue.api import add_task
 from zope.component import adapter
 from zope.interface import implementer
 
@@ -47,25 +45,11 @@ class QueuedDoArchiveTaskAdapter(object):
     def process(self, task):
         """Transition the objects from the task
         """
+        # Process the objects
+        objects = map(api.get_object_by_uid, task.uids)
+        map(lambda obj: doActionFor(obj, "archive"), objects)
+
+        # Add next chunk of objects to the queue
+        chunk_size = task.get("chunk_size", 10)
         priority = task.get("priority", 50)
-
-        # Process the objects, but one by one
-        uids = task.uids or []
-        if uids:
-            obj = api.get_object_by_uid(uids[0])
-            doActionFor(obj, "archive")
-
-        # Create new task with the remaining uids
-        next_uids = uids[1:]
-        if next_uids:
-            kwargs = {
-                "uids": next_uids,
-                "priority": priority,
-                "chunk_size": len(next_uids),
-            }
-            archive_folder = api.get_portal().archive
-            add_task(QUEUE_TASK_ID, archive_folder, **kwargs)
-
-        else:
-            # Queue a new set of objects for archiving
-            queue_do_archive(priority=priority)
+        queue_do_archive(chunk_size=chunk_size, priority=priority)
