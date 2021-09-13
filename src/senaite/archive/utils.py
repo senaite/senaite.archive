@@ -20,7 +20,6 @@
 
 import os
 import six
-import transaction
 from Acquisition import aq_base
 from datetime import datetime
 from DateTime import DateTime
@@ -37,7 +36,9 @@ from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
 
 from bika.lims import api
+from bika.lims.catalog import BIKA_CATALOG
 from bika.lims.catalog import CATALOG_ANALYSIS_REQUEST_LISTING
+from bika.lims.catalog import CATALOG_WORKSHEET_LISTING
 from bika.lims.exportimport.genericsetup.structure import exportObjects
 from bika.lims.interfaces import IAnalysisRequest
 from bika.lims.interfaces import IAuditable
@@ -91,6 +92,24 @@ def archive_old_objects(context=None):  # noqa context is required by genericset
         do_action_for(obj, "archive")
 
 
+def search(portal_type):
+    """Search items from the given portal type
+    """
+    mappings = {
+        "AnalysisRequest": CATALOG_ANALYSIS_REQUEST_LISTING,
+        "Worksheet": CATALOG_WORKSHEET_LISTING,
+        "Batch": BIKA_CATALOG,
+    }
+    query = {"portal_type": portal_type}
+    catalog = mappings.get(portal_type, UID_CATALOG)
+    if portal_type in mappings:
+        query.update({
+            "sort_on": "created",
+            "sort_order": "ascending",
+        })
+    return api.search(query, catalog)
+
+
 def archivable_objects(limit=-1):
     """Returns an enumerator with objects their type is suitable for archival
     and they are outside of the retention period
@@ -101,8 +120,7 @@ def archivable_objects(limit=-1):
     for portal_type in portal_types:
         if 0 < limit <= num_objs:
             break
-        query = {"portal_type": portal_type}
-        for obj in api.search(query, UID_CATALOG):
+        for obj in search(portal_type):
             if 0 < limit <= num_objs:
                 break
             obj = api.get_object(obj)
