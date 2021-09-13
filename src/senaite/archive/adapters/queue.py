@@ -18,6 +18,7 @@
 # Copyright 2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+import copy
 from senaite.archive.config import QUEUE_TASK_ID
 from senaite.archive.interfaces import IArchiveFolder
 from senaite.archive.utils import queue_do_archive
@@ -50,7 +51,7 @@ class QueuedDoArchiveTaskAdapter(object):
         priority = task.get("priority", 50)
 
         # Process the objects, but one by one
-        uids = task.uids or []
+        uids = copy.deepcopy(task.uids) or []
         if uids:
             obj = api.get_object_by_uid(uids[0])
             doActionFor(obj, "archive")
