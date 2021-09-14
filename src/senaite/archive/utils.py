@@ -28,7 +28,6 @@ from Products.Archetypes.config import UID_CATALOG
 from Products.GenericSetup.context import DirectoryExportContext
 from senaite.archive import logger
 from senaite.archive.config import PRODUCT_NAME
-from senaite.archive.config import QUEUE_TASK_ID
 from senaite.archive.interfaces import IArchiveDataProvider
 from senaite.archive.interfaces import IForArchiving
 from zope.component import getMultiAdapter
@@ -49,11 +48,11 @@ from bika.lims.workflow import isTransitionAllowed
 
 try:
     from senaite.queue.api import is_queue_ready
-    from senaite.queue.api import add_task
+    from senaite.queue.api import add_action_task
 except:
     # Queue is not installed
     is_queue_ready = None
-    add_task = None
+    add_action_task = None
 
 
 def can_archive(obj):
@@ -149,21 +148,18 @@ def do_archive():
         archive_old_objects()
 
 
-def queue_do_archive(chunk_size=1, priority=50):
+def queue_do_archive():
     """Adds a queued task (if senaite.queue installed and active) in charge of
     archiving the non-active records that are outside of the retention period
     """
-    objects = archivable_objects(limit=chunk_size)
-    if not objects:
-        return
-    uids = map(api.get_uid, objects)
     kwargs = {
-        "uids": uids,
-        "priority": priority,
-        "chunk_size": chunk_size,
+        "priority": 50,
+        "chunk_size": 1,
+        "unique": True,
     }
+    objects = archivable_objects(limit=100)
     archive_folder = api.get_portal().archive
-    add_task(QUEUE_TASK_ID, archive_folder, **kwargs)
+    add_action_task(objects, "archive", archive_folder, **kwargs)
 
 
 def archive_object(obj):
