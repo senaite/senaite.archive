@@ -20,6 +20,8 @@
 
 import os
 import six
+import transaction
+
 from Acquisition import aq_base
 from datetime import datetime
 from DateTime import DateTime
@@ -63,6 +65,9 @@ def can_archive(obj):
 
     if api.is_portal(obj):
         return False
+
+    if IForArchiving.providedBy(obj):
+        return True
 
     # The object itself or its parent has the transition "archive" permitted
     if not isTransitionAllowed(obj, "archive"):
@@ -157,6 +162,7 @@ def queue_do_archive():
         "chunk_size": 1,
         "unique": True,
         "ghost": True,
+        "retries": 10,
     }
     uids = map(api.get_uid, archivable_objects(limit=10000))
     archive_folder = api.get_portal().archive
@@ -177,12 +183,13 @@ def archive_object(obj):
     # contents into XML files. See monkeys/genericsetup/can_export
     # Also, remove the IAuditable so no record in auditlog catalog is created
     for ob in extract(obj):
-        if can_archive(ob):
+        if not IForArchiving.providedBy(ob):
             alsoProvides(ob, IForArchiving)
+        if IAuditable.providedBy(ob):
             noLongerProvides(ob, IAuditable)
 
-    # Do a transaction savepoint
-    #transaction.savepoint(optimistic=True)
+    # Do a transaction commit
+    transaction.commit()
 
     # Export object to the Archive's path in filesystem
     archive_path = get_archive_relative_path(obj)
