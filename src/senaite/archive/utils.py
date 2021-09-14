@@ -156,8 +156,9 @@ def queue_do_archive():
         "priority": 50,
         "chunk_size": 1,
         "unique": True,
+        "ghost": True,
     }
-    objects = archivable_objects(limit=100)
+    objects = archivable_objects(limit=10000)
     archive_folder = api.get_portal().archive
     add_action_task(objects, "archive", archive_folder, **kwargs)
 
