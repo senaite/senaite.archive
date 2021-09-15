@@ -20,8 +20,6 @@
 
 import os
 import six
-import transaction
-
 from Acquisition import aq_base
 from datetime import datetime
 from DateTime import DateTime
@@ -187,9 +185,6 @@ def archive_object(obj):
             alsoProvides(ob, IForArchiving)
         if IAuditable.providedBy(ob):
             noLongerProvides(ob, IAuditable)
-
-    # Do a transaction commit
-    transaction.commit()
 
     # Export object to the Archive's path in filesystem
     archive_path = get_archive_relative_path(obj)
