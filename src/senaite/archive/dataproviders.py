@@ -85,6 +85,8 @@ class ArchiveBaseDataProvider(object):
         """Returns a text with the format 'user_id (user_fullname)'
         """
         props = self.get_user_data(user_id)
+        if not props:
+            return user_id
         fullname = props.get("fullname", None)
         if fullname:
             user_id = "{} ({})".format(user_id, fullname)
