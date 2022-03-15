@@ -19,6 +19,7 @@
 # Some rights reserved, see README and LICENSE.
 
 from senaite.archive.interfaces import IArchiveFolder
+from senaite.archive.utils import can_archive
 from senaite.archive.utils import queue_do_archive
 from zope.component import adapter
 from zope.interface import implementer
@@ -45,9 +46,11 @@ class QueuedDoArchiveTaskAdapter(object):
     def process(self, task):
         """Transition the objects from the task
         """
-        # Process the objects
-        objects = map(api.get_object_by_uid, task.uids)
-        map(lambda obj: doActionFor(obj, "archive"), objects)
+        # Extract and process the objects
+        for uid in task.uids:
+            obj = api.get_object_by_uid(uid, default=None)
+            if can_archive(obj):
+                doActionFor(obj, "archive")
 
         # Add next chunk of objects to the queue
         chunk_size = task.get("chunk_size", 10)
