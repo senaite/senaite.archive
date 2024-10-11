@@ -1,10 +1,21 @@
 <?xml version="1.0"?>
 <object name="portal_workflow" meta_type="Plone Workflow Tool">
+
+  <!-- Workflow: senaite_archive_workflow
+  A "one-state workflow" for archive folder (ArchiveFolder type).
+  A copy of senaite_one_state_workflow, but:
+   - "Access contents folder" granted to "Authenticated"
+   - "Delete objects" not granted to anyone
+   - "List folder contents" granted to "Authenticated"
+   - "View" granted to "Authenticated"
+  -->
+  <object name="senaite_archive_workflow" meta_type="Workflow"/>
+
   <bindings>
 
     <!-- Bindings to "senaite_one_state_workflow" -->
     <type type_id="ArchiveFolder">
-      <bound-workflow workflow_id="senaite_one_state_workflow"/>
+      <bound-workflow workflow_id="senaite_archive_workflow"/>
     </type>
     <type type_id="ArchiveItem">
       <bound-workflow workflow_id="senaite_one_state_workflow"/>

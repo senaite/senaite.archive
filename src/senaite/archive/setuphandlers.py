@@ -40,6 +40,7 @@ PORTAL_FOLDERS = [
 
 INDEXES = [
     # Tuples of (catalog, id, indexed attribute, type)
+    (CATALOG_ARCHIVE, "UID", "UUIDIndex"),
     (CATALOG_ARCHIVE, "item_id", "FieldIndex"),
     (CATALOG_ARCHIVE, "item_type", "FieldIndex"),
     (CATALOG_ARCHIVE, "item_created", "DateIndex"),

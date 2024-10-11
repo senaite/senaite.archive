@@ -22,6 +22,7 @@
   <include package=".browser"/>
   <include package=".catalog"/>
   <include package=".monkeys"/>
+  <include package=".upgrade"/>
   <include package=".workflow"/>
 
   <!-- Default data providers
